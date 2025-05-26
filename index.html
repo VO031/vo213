@@ -1,0 +1,1228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hệ thống dự đoán sản lượng và giống phù hợp</title>
+    <style>
+        /* Root Variables for Theming and Reusability */
+        :root {
+            --border-radius: 1.2rem;
+            --transition-duration: 0.3s;
+            --max-container-width: 1280px;
+            --font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            --shadow-color: rgba(0, 0, 0, 0.12);
+            --glass-bg: rgba(255, 255, 255, 0.15);
+            --glass-blur: blur(12px);
+            --temperature-color: #e63946;
+            --humidity-color: #1d84c6;
+            --precipitation-color: #0984e3;
+            --sunshine-color: #f4a261;
+        }
+
+        /* Light Mode Default */
+        :root {
+            --primary-gradient-start: #a8e6cf;
+            --primary-gradient-end: #dcedc8;
+            --box-gradient-start: #a8e6cf;
+            --box-gradient-end: #dcedc8;
+            --calendar-gradient-start: #81d4fa;
+            --calendar-gradient-end: #e0f7fa;
+            --text-dark: #1a2632;
+            --text-light: #f5f6f5;
+            --box-bg: rgba(255, 255, 255, 0.85);
+            --calendar-bg: #fff;
+            --calendar-border: #e74c3c;
+            --calendar-shadow: rgba(0, 0, 0, 0.15);
+        }
+
+        /* Dark Mode Support */
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --primary-gradient-start: #2d6a4f;
+                --primary-gradient-end: #4a7043;
+                --box-gradient-start: #2d6a4f;
+                --box-gradient-end: #4a7043;
+                --calendar-gradient-start: #3498db;
+                --calendar-gradient-end: #34495e;
+                --text-dark: #e6ecef;
+                --text-light: #2c3e50;
+                --box-bg: rgba(40, 54, 70, 0.9);
+                --glass-bg: rgba(40, 54, 70, 0.25);
+                --calendar-bg: #34495e;
+                --calendar-border: #c0392b;
+                --calendar-shadow: rgba(0, 0, 0, 0.4);
+            }
+        }
+
+        /* Reset and Base Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        body {
+            font-family: var(--font-family);
+            min-height: 100vh;
+            background: linear-gradient(135deg, var(--primary-gradient-start), var(--primary-gradient-end));
+            padding: clamp(1.5rem, 5vw, 2.5rem);
+            overflow-x: hidden;
+        }
+
+        /* Body Container to Split Boxes and Calendar */
+        .body-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2rem;
+            max-width: var(--max-container-width);
+            margin: 0 auto;
+            align-items: flex-start;
+        }
+
+        /* Right Side Container (Calendar + Weather) */
+        .right-side {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+            width: 300px;
+            max-width: 100%;
+        }
+
+        /* Title Styles */
+        .title {
+            color: red;
+            font-size: clamp(2rem, 6vw, 3.2rem);
+            font-weight: 700;
+            text-align: center;
+            margin: 2.5rem 0;
+            padding: 1.5rem 3rem;
+            background: linear-gradient(135deg, var(--glass-bg), rgba(255, 255, 255, 0.3));
+            backdrop-filter: var(--glass-blur);
+            border-radius: var(--border-radius);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.4);
+            animation: fadeInDown 0.8s ease-out, glow 2s ease-in-out infinite alternate;
+            text-shadow: 0 2px 5px rgba(0, 0, 0, 0.25);
+            letter-spacing: 1px;
+        }
+
+        /* Glow Animation */
+        @keyframes glow {
+            from {
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2), 0 0 20px rgba(255, 255, 255, 0.2);
+            }
+            to {
+                box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3), 0 0 30px rgba(255, 255, 255, 0.4);
+            }
+        }
+
+        /* Box Container (Left Side) with Background Image */
+        .box-container {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+            background-image: url('img/nendata');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            padding: 1rem;
+            border-radius: var(--border-radius);
+            box-shadow: 0 8px 20px var(--shadow-color);
+        }
+
+        /* Hàng trên: 2 box */
+        .top-row {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 2rem;
+        }
+
+        /* Hàng dưới: 3 box */
+        .bottom-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2rem;
+        }
+
+        /* Box Styles */
+        .box {
+            background: var(--box-bg);
+            padding: 2rem;
+            border-radius: var(--border-radius);
+            box-shadow: 0 8px 25px var(--shadow-color);
+            text-align: center;
+            transition: transform var(--transition-duration) ease, box-shadow var(--transition-duration) ease;
+            animation: fadeInUp 0.6s ease-out forwards;
+            animation-delay: calc(var(--delay) * 0.15s);
+            will-change: transform, box-shadow;
+            min-width: 0;
+        }
+
+        .box:nth-child(1) { --delay: 1; }
+        .box:nth-child(2) { --delay: 2; }
+        .box:nth-child(3) { --delay: 3; }
+        .box:nth-child(4) { --delay: 4; }
+        .box:nth-child(5) { --delay: 5; }
+
+        .box:hover {
+            transform: translateY(-0.6rem);
+            box-shadow: 0 14px 35px var(--shadow-color);
+        }
+
+        /* Typography for Boxes */
+        .box h1 {
+            color: var(--text-dark);
+            font-size: clamp(1.3rem, 3vw, 1.6rem);
+            font-weight: 500;
+            margin-bottom: 1.2rem;
+            letter-spacing: 0.6px;
+        }
+
+        .data {
+            font-size: clamp(1rem, 2.5vw, 1.3rem);
+            color: #7f8c8d;
+            font-weight: 400;
+        }
+
+        .value {
+            font-size: clamp(2rem, 4.5vw, 2.8rem);
+            font-weight: 700;
+            display: block;
+            margin: 0.6rem 0;
+            transition: color var(--transition-duration) ease;
+        }
+
+        #temperature { color: var(--temperature-color); }
+        #humidity { color: var(--humidity-color); }
+        #soil_moisture { color: #2ca02c; }
+        #nh3 { color: #7209b7; }
+        #precipitation { color: var(--precipitation-color); }
+
+        /* Filter Container */
+        .filter-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            align-items: center;
+            margin-bottom: 1rem;
+            background: var(--box-bg);
+            padding: 1rem;
+            border-radius: var(--border-radius);
+            box-shadow: 0 8px 20px var(--shadow-color);
+        }
+
+        .filter-container label {
+            color: var(--text-dark);
+            font-weight: 500;
+            font-size: clamp(0.9rem, 2vw, 1rem);
+        }
+
+        .filter-container input {
+            padding: 0.5rem;
+            border: 1px solid rgba(0, 0, 0, 0.2);
+            border-radius: 0.5rem;
+            font-family: var(--font-family);
+            font-size: clamp(0.9rem, 2vw, 1rem);
+        }
+
+        .filter-container button,
+        .chart-button {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 0.5rem;
+            background: linear-gradient(135deg, var(--calendar-gradient-start), var(--calendar-gradient-end));
+            color: var(--text-dark);
+            font-weight: 500;
+            cursor: pointer;
+            transition: transform var(--transition-duration) ease, box-shadow var(--transition-duration) ease;
+        }
+
+        .filter-container button:hover,
+        .chart-button:hover {
+            transform: translateY(-0.2rem);
+            box-shadow: 0 4px 15px var(--shadow-color);
+        }
+
+        .warning-message {
+            color: #e74c3c;
+            font-size: clamp(0.8rem, 1.8vw, 0.9rem);
+            margin-top: 0.5rem;
+        }
+
+        /* Table Styles */
+        .data-table-container {
+            margin-top: 2rem;
+            background: var(--box-bg);
+            padding: 1rem;
+            border-radius: var(--border-radius);
+            box-shadow: 0 8px 20px var(--shadow-color);
+            overflow-x: auto;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            color: var(--text-dark);
+        }
+
+        .data-table th,
+        .data-table td {
+            padding: 0.8rem;
+            text-align: center;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .data-table th {
+            background: rgba(0, 0, 0, 0.05);
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: clamp(0.9rem, 2vw, 1rem);
+        }
+
+        .data-table td {
+            font-size: clamp(0.9rem, 2vw, 1rem);
+        }
+
+        .data-table tbody tr:hover {
+            background: rgba(0, 0, 0, 0.03);
+        }
+
+        /* Chart Container */
+        .chart-container {
+            margin-top: 2rem;
+            background: var(--box-bg);
+            padding: 1rem;
+            border-radius: var(--border-radius);
+            box-shadow: 0 8px 20px var(--shadow-color);
+            display: none;
+        }
+
+        .chart-container.active {
+            display: block;
+        }
+
+        /* Calendar Container (Separate Right Side) with Background */
+        .calendar-container {
+            background: linear-gradient(135deg, var(--calendar-gradient-start), var(--calendar-gradient-end));
+            border-radius: var(--border-radius);
+            box-shadow: 0 8px 20px var(--calendar-shadow);
+            padding: 1.5rem;
+            border-top: 8px solid var(--calendar-border);
+            animation: fadeInRight 0.8s ease-out;
+        }
+
+        /* Tear-off Effect */
+        .calendar-container::before {
+            content: '';
+            position: absolute;
+            top: -8px;
+            left: 0;
+            right: 0;
+            height: 8px;
+            background: repeating-linear-gradient(
+                45deg,
+                transparent,
+                transparent 10px,
+                rgba(0, 0, 0, 0.1) 10px,
+                rgba(0, 0, 0, 0.1) 20px
+            );
+        }
+
+        /* Calendar Styles */
+        .calendar {
+            text-align: center;
+        }
+
+        .calendar-month-year {
+            font-size: clamp(1.1rem, 2vw, 1.3rem);
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+        }
+
+        .calendar-day {
+            font-size: clamp(2.5rem, 5vw, 3.5rem);
+            font-weight: 700;
+            color: var(--calendar-border);
+            margin: 0.5rem 0;
+            line-height: 1;
+        }
+
+        .calendar-weekday {
+            font-size: clamp(1rem, 1.8vw, 1.2rem);
+            font-weight: 500;
+            color: #7f8c8d;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+        }
+
+        .calendar-time {
+            font-size: clamp(1rem, 1.8vw, 1.2rem);
+            font-weight: 400;
+            color: var(--text-dark);
+        }
+
+        /* Weather Forecast Container Below Calendar */
+        .weather-container {
+            background: linear-gradient(135deg, var(--calendar-gradient-start), var(--calendar-gradient-end));
+            border-radius: var(--border-radius);
+            box-shadow: 0 8px 20px var(--calendar-shadow);
+            padding: 1rem;
+            animation: fadeInRight 0.8s ease-out;
+        }
+
+        .weather-forecast {
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .forecast-item {
+            background: var(--box-bg);
+            padding: 0.6rem 1rem;
+            border-radius: var(--border-radius);
+            box-shadow: 0 4px 15px var(--shadow-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .forecast-item .time {
+            font-size: clamp(0.9rem, 1.8vw, 1rem);
+            font-weight: 500;
+            color: var(--text-dark);
+            min-width: 4rem;
+        }
+
+        .forecast-item .weather-data {
+            display: flex;
+            gap: 0.3rem;
+            font-size: clamp(0.9rem, 1.8vw, 1rem);
+            flex-shrink: 0;
+        }
+
+        .forecast-item .temperature { color: var(--temperature-color); }
+        .forecast-item .humidity { color: var(--humidity-color); }
+        .forecast-item .sunshine { color: var(--sunshine-color); }
+        .forecast-item .rain { color: var(--precipitation-color); }
+
+        /* Animation Keyframes */
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-1.5rem); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(1.5rem); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeInRight {
+            from { opacity: 0; transform: translateX(1.5rem); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        /* Accessibility Enhancements */
+        @media (prefers-reduced-motion: reduce) {
+            .box, .title, .calendar-container, .weather-container {
+                animation: none;
+                transition: none;
+            }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1024px) {
+            .body-container {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .box-container {
+                width: 100%;
+            }
+
+            .right-side {
+                width: 100%;
+                max-width: 360px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .title {
+                font-size: clamp(1.5rem, 4vw, 1.9rem);
+                padding: 1rem 1.5rem;
+            }
+
+            .top-row,
+            .bottom-row {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+
+            .box {
+                max-width: 360px;
+                margin: 0 auto;
+            }
+
+            .value {
+                font-size: clamp(1.8rem, 3.5vw, 2.2rem);
+            }
+
+            .forecast-item {
+                flex-direction: row;
+                align-items: center;
+                gap: 0.5rem;
+            }
+
+            .forecast-item .weather-data {
+                flex-wrap: nowrap;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .title {
+                font-size: clamp(1.3rem, 3.5vw, 1.6rem);
+            }
+
+            body {
+                padding: clamp(1rem, 3vw, 1.5rem);
+            }
+
+            .calendar-day {
+                font-size: clamp(2rem, 4vw, 2.8rem);
+            }
+
+            .forecast-item .weather-data {
+                font-size: clamp(0.8rem, 1.5vw, 0.9rem);
+            }
+
+            .data-table th,
+            .data-table td {
+                padding: 0.5rem;
+                font-size: clamp(0.8rem, 1.5vw, 0.9rem);
+            }
+
+            .filter-container {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="title">Hệ thống dự đoán sản lượng và giống phù hợp</div>
+    <div class="body-container">
+        <!-- Box Container (Left Side) with Background -->
+        <div class="box-container">
+            <div class="top-row">
+                <div class="box">
+                    <h1>Nhiệt độ</h1>
+                    <div class="data"><span class="value" id="temperature">--</span> °C</div>
+                </div>
+                <div class="box">
+                    <h1>Độ ẩm</h1>
+                    <div class="data"><span class="value" id="humidity">--</span> %</div>
+                </div>
+            </div>
+            <div class="bottom-row">
+                <div class="box">
+                    <h1>Độ ẩm đất</h1>
+                    <div class="data"><span class="value" id="soil_moisture">--</span> %</div>
+                </div>
+                <div class="box">
+                    <h1>Nồng độ NH3+</h1>
+                    <div class="data"><span class="value" id="nh3">--</span> ppm</div>
+                </div>
+                <div class="box">
+                    <h1>Lượng mưa</h1>
+                    <div class="data"><span class="value" id="precipitation">--</span> mm</div>
+                </div>
+            </div>
+
+            <!-- Filter Container -->
+            <div class="filter-container">
+                <label for="date-from">Từ ngày:</label>
+                <input type="text" id="date-from" placeholder="Chọn ngày giờ bắt đầu">
+                <label for="date-to">Đến ngày:</label>
+                <input type="text" id="date-to" placeholder="Chọn ngày giờ kết thúc">
+                <button onclick="filterData()">Lọc dữ liệu</button>
+                <button class="chart-button" onclick="toggleChartOptions()">Vẽ biểu đồ</button>
+                <select id="chart-type" style="display: none;">
+                    <option value="line">Biểu đồ đường</option>
+                    <option value="bar">Biểu đồ cột</option>
+                </select>
+                <div class="warning-message" id="warning-message" style="display: none;">
+                    Dữ liệu có thể đã được reset trước đó.
+                </div>
+            </div>
+
+            <!-- Table Container Below Boxes -->
+            <div class="data-table-container">
+                <table class="data-table" id="data-table">
+                    <thead>
+                        <tr>
+                            <th>Thời gian</th>
+                            <th>Nhiệt độ (°C)</th>
+                            <th>Độ ẩm (%)</th>
+                            <th>Lượng mưa (mm)</th>
+                            <th>Nồng độ NH3+ (ppm)</th>
+                            <th>Độ ẩm đất (%)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="data-table-body">
+                        <!-- Rows will be added dynamically -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Chart Container -->
+            <div class="chart-container" id="chart-container">
+                <canvas id="data-chart"></canvas>
+            </div>
+        </div>
+
+        <!-- Right Side: Calendar and Weather Forecast -->
+        <div class="right-side">
+            <!-- Calendar Container -->
+            <div class="calendar-container">
+                <div class="calendar">
+                    <div class="calendar-month-year" id="calendar-month-year"></div>
+                    <div class="calendar-day" id="calendar-day"></div>
+                    <div class="calendar-weekday" id="calendar-weekday"></div>
+                    <div class="calendar-time" id="calendar-time"></div>
+                </div>
+            </div>
+
+            <!-- Weather Forecast Container Below Calendar -->
+            <div class="weather-container">
+                <div style="margin-bottom: 1rem;">
+                    <label for="forecast-hours" style="color: var(--text-dark); font-weight: 500;">Chọn khoảng thời gian dự báo: </label>
+                    <select id="forecast-hours" onchange="updateForecastHours()">
+                        <option value="3" selected>3 giờ</option>
+                        <option value="6">6 giờ</option>
+                        <option value="12">12 giờ</option>
+                        <option value="24">24 giờ</option>
+                        <option value="2days">2 ngày</option>
+                        <option value="3days">3 ngày</option>
+                        <option value="384">16 ngày</option>
+                    </select>
+                </div>
+                <div class="weather-forecast" id="weather-forecast">
+                    <!-- Forecast items will be added dynamically -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <!-- Flatpickr and Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBNAFhMZtU3ubH5R6ZaYZ1rmt-4PLONfj4",
+            authDomain: "myweb-34625.firebaseapp.com",
+            databaseURL: "https://myweb-34625-default-rtdb.firebaseio.com",
+            projectId: "myweb-34625",
+            storageBucket: "myweb-34625.firebasestorage.app",
+            messagingSenderId: "140146495176",
+            appId: "1:140146495176:web:47027bcb3f5750a0b89ffd",
+            measurementId: "G-7GNXDSY3F2"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+
+        // Reference to Firebase Realtime Database
+        const database = firebase.database();
+        const dataRef = database.ref('data');
+        const historyRef = database.ref('history');
+
+        // Array to store historical data locally
+        let historicalData = [];
+        let chartInstance = null;
+
+        // Initialize Flatpickr for date pickers with time
+        const fromPicker = flatpickr("#date-from", {
+            enableTime: true,
+            dateFormat: "d/m/Y H:i",
+            time_24hr: true,
+            maxDate: "today",
+            defaultDate: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), // 7 days ago
+            locale: {
+                firstDayOfWeek: 1,
+                weekdays: {
+                    shorthand: ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'],
+                    longhand: ['Chủ Nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy']
+                },
+                months: {
+                    shorthand: ['Th1', 'Th2', 'Th3', 'Th4', 'Th5', 'Th6', 'Th7', 'Th8', 'Th9', 'Th10', 'Th11', 'Th12'],
+                    longhand: ['Tháng Một', 'Tháng Hai', 'Tháng Ba', 'Tháng Tư', 'Tháng Năm', 'Tháng Sáu', 'Tháng Bảy', 'Tháng Tám', 'Tháng Chín', 'Tháng Mười', 'Tháng Mười Một', 'Tháng Mười Hai']
+                }
+            },
+            onChange: function(selectedDates) {
+                if (selectedDates[0]) {
+                    toPicker.set('minDate', selectedDates[0]);
+                }
+            }
+        });
+
+        const toPicker = flatpickr("#date-to", {
+            enableTime: true,
+            dateFormat: "d/m/Y H:i",
+            time_24hr: true,
+            maxDate: "today",
+            defaultDate: new Date(), // Current time
+            locale: {
+                firstDayOfWeek: 1,
+                weekdays: {
+                    shorthand: ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'],
+                    longhand: ['Chủ Nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy']
+                },
+                months: {
+                    shorthand: ['Th1', 'Th2', 'Th3', 'Th4', 'Th5', 'Th6', 'Th7', 'Th8', 'Th9', 'Th10', 'Th11', 'Th12'],
+                    longhand: ['Tháng Một', 'Tháng Hai', 'Tháng Ba', 'Tháng Tư', 'Tháng Năm', 'Tháng Sáu', 'Tháng Bảy', 'Tháng Tám', 'Tháng Chín', 'Tháng Mười', 'Tháng Mười Một', 'Tháng Mười Hai']
+                }
+            },
+            onChange: function(selectedDates) {
+                if (selectedDates[0]) {
+                    fromPicker.set('maxDate', selectedDates[0]);
+                }
+            }
+        });
+
+        // Listen for Firebase real-time updates for current data
+        dataRef.on('value', (snapshot) => {
+            const data = snapshot.val();
+            if (data) {
+                console.log('Firebase data received:', data);
+                document.getElementById('temperature').textContent = data.temperature ? data.temperature.toFixed(1) : 'N/A';
+                document.getElementById('humidity').textContent = data.humidity ? data.humidity.toFixed(1) : 'N/A';
+                document.getElementById('soil_moisture').textContent = data.soil_moisture ? data.soil_moisture.toFixed(1) : 'N/A';
+                document.getElementById('nh3').textContent = data.nh3 ? data.nh3.toFixed(1) : 'N/A';
+            } else {
+                console.warn('No data available in Firebase at /data');
+                document.getElementById('temperature').textContent = 'N/A';
+                document.getElementById('humidity').textContent = 'N/A';
+                document.getElementById('soil_moisture').textContent = 'N/A';
+                document.getElementById('nh3').textContent = 'N/A';
+            }
+        }, (error) => {
+            console.error('Error fetching Firebase data:', error.message);
+            document.getElementById('temperature').textContent = 'Error';
+            document.getElementById('humidity').textContent = 'Error';
+            document.getElementById('soil_moisture').textContent = 'Error';
+            document.getElementById('nh3').textContent = 'Error';
+        });
+
+        // Fetch weather data from Open-Meteo API and update table every 5 minutes
+        async function fetchWeatherData(option) {
+            const coordinates = {
+                latitude: 10.6700, // Suối Nghệ, Châu Đức, BRVT
+                longitude: 107.2500
+            };
+            const isLongTerm = option === '2days' || option === '3days' || option === '384';
+            const url = `https://api.open-meteo.com/v1/forecast?latitude=${coordinates.latitude}&longitude=${coordinates.longitude}&hourly=temperature_2m,relative_humidity_2m,precipitation&timezone=Asia/Ho_Chi_Minh${isLongTerm ? '&forecast_days=16' : ''}`;
+            try {
+                const response = await fetch(url);
+                const data = await response.json();
+                if (data.hourly) {
+                    // Update current precipitation
+                    const latestPrecipitation = data.hourly.precipitation[0];
+                    document.getElementById('precipitation').textContent = latestPrecipitation ? latestPrecipitation.toFixed(1) : '0.0';
+                    console.log('Current precipitation:', latestPrecipitation);
+
+                    // Update historical data with the latest values
+                    const now = new Date();
+                    const timestamp = now.toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' });
+                    const currentData = {
+                        timestamp: timestamp,
+                        temperature: parseFloat(document.getElementById('temperature').textContent) || 'N/A',
+                        humidity: parseFloat(document.getElementById('humidity').textContent) || 'N/A',
+                        precipitation: latestPrecipitation ? latestPrecipitation.toFixed(1) : '0.0',
+                        nh3: parseFloat(document.getElementById('nh3').textContent) || 'N/A',
+                        soil_moisture: parseFloat(document.getElementById('soil_moisture').textContent) || 'N/A'
+                    };
+
+                    // Add to historical data
+                    historicalData.unshift(currentData); // Add to the beginning
+                    if (historicalData.length > 17280) { // Limit to 2 months (~17,280 entries)
+                        historicalData.pop();
+                    }
+
+                    // Save to Firebase history
+                    historyRef.push(currentData);
+
+                    // Update the table
+                    updateDataTable();
+
+                    // Update weather forecast based on selected option
+                    const forecastContainer = document.getElementById('weather-forecast');
+                    forecastContainer.innerHTML = ''; // Clear previous forecast
+
+                    const hours = option === '2days' ? 48 : option === '3days' ? 72 : option === '384' ? 384 : parseInt(option);
+                    const times = data.hourly.time.slice(1, hours + 1);
+                    const temperatures = data.hourly.temperature_2m.slice(1, hours + 1);
+                    const humidities = data.hourly.relative_humidity_2m.slice(1, hours + 1);
+                    const precipitations = data.hourly.precipitation.slice(1, hours + 1);
+
+                    if (hours <= 12) {
+                        // Detailed hourly forecast for 3, 6, 12 hours
+                        times.forEach((time, index) => {
+                            const date = new Date(time);
+                            const hours = date.getHours();
+                            const period = hours >= 12 ? 'PM' : 'AM';
+                            const displayHour = hours % 12 || 12;
+
+                            const isNight = hours >= 18 || hours < 6;
+                            let sunshineIcon = isNight
+                                ? temperatures[index] > 30 ? '🌙' : temperatures[index] > 25 ? '🌜' : '🌗'
+                                : temperatures[index] > 30 ? '☀️' : temperatures[index] > 25 ? '🌤️' : '⛅';
+                            let rainIcon = precipitations[index] > 10 ? '🌧️'
+                                : precipitations[index] > 2 ? '🌦️'
+                                : precipitations[index] > 0 ? '💧'
+                                : temperatures[index] <= 25 ? '🌫️' : '☁️';
+
+                            const forecastItem = `
+                                <div class="forecast-item">
+                                    <span class="time">${displayHour} ${period}</span>
+                                    <div class="weather-data">
+                                        <span class="temperature">${temperatures[index].toFixed(1)}°C</span>
+                                        <span class="humidity">${humidities[index]}%</span>
+                                        <span class="sunshine">${sunshineIcon}</span>
+                                        <span class="rain">${rainIcon}</span>
+                                    </div>
+                                </div>
+                            `;
+                            forecastContainer.innerHTML += forecastItem;
+                        });
+                    } else if (hours === 24) {
+                        // Summary forecast for 24 hours (single line)
+                        const avgTemperature = temperatures.reduce((sum, temp) => sum + temp, 0) / temperatures.length;
+                        const avgHumidity = humidities.reduce((sum, hum) => sum + hum, 0) / humidities.length;
+                        const totalPrecipitation = precipitations.reduce((sum, prec) => sum + prec, 0);
+
+                        let sunshineIcon = avgTemperature > 30 ? '☀️' : avgTemperature > 25 ? '🌤️' : '⛅';
+                        let rainIcon = totalPrecipitation > 10 ? '🌧️'
+                            : totalPrecipitation > 2 ? '🌦️'
+                            : totalPrecipitation > 0 ? '💧'
+                            : avgTemperature <= 25 ? '🌫️' : '☁️';
+
+                        const forecastItem = `
+                            <div class="forecast-item">
+                                <span class="time">Trong 24 giờ tới</span>
+                                <div class="weather-data">
+                                    <span class="temperature">${avgTemperature.toFixed(1)}°C</span>
+                                    <span class="humidity">${avgHumidity.toFixed(0)}%</span>
+                                    <span class="sunshine">${sunshineIcon}</span>
+                                    <span class="rain">${rainIcon}</span>
+                                </div>
+                            </div>
+                        `;
+                        forecastContainer.innerHTML += forecastItem;
+                    } else if (option === '2days' || option === '3days') {
+                        // Daily forecast for 2 or 3 days
+                        const numDays = option === '2days' ? 2 : 3;
+                        for (let day = 0; day < numDays; day++) {
+                            const start = day * 24;
+                            const end = (day + 1) * 24;
+                            const dayTemps = temperatures.slice(start, end);
+                            const dayHums = humidities.slice(start, end);
+                            const dayPrecs = precipitations.slice(start, end);
+
+                            const avgTemp = dayTemps.reduce((sum, temp) => sum + temp, 0) / dayTemps.length;
+                            const avgHum = dayHums.reduce((sum, hum) => sum + hum, 0) / dayHums.length;
+                            const totalPrec = dayPrecs.reduce((sum, prec) => sum + prec, 0);
+
+                            let sunshineIcon = avgTemp > 30 ? '☀️' : avgTemp > 25 ? '🌤️' : '⛅';
+                            let rainIcon = totalPrec > 10 ? '🌧️'
+                                : totalPrec > 2 ? '🌦️'
+                                : totalPrec > 0 ? '💧'
+                                : avgTemp <= 25 ? '🌫️' : '☁️';
+
+                            const date = new Date(times[start]);
+                            const dayStr = date.toLocaleString('vi-VN', { day: 'numeric', month: 'numeric' });
+
+                            const forecastItem = `
+                                <div class="forecast-item">
+                                    <span class="time">Ngày ${dayStr}</span>
+                                    <div class="weather-data">
+                                        <span class="temperature">${avgTemp.toFixed(1)}°C</span>
+                                        <span class="humidity">${avgHum.toFixed(0)}%</span>
+                                        <span class="sunshine">${sunshineIcon}</span>
+                                        <span class="rain">${rainIcon}</span>
+                                    </div>
+                                </div>
+                            `;
+                            forecastContainer.innerHTML += forecastItem;
+                        }
+                    } else if (option === '384') {
+                        // Summary daily forecast for 16 days
+                        for (let day = 0; day < 16; day++) {
+                            const start = day * 24;
+                            const end = (day + 1) * 24;
+                            const dayTemps = temperatures.slice(start, end);
+                            const dayHums = humidities.slice(start, end);
+                            const dayPrecs = precipitations.slice(start, end);
+
+                            const avgTemp = dayTemps.reduce((sum, temp) => sum + temp, 0) / dayTemps.length;
+                            const avgHum = dayHums.reduce((sum, hum) => sum + hum, 0) / dayHums.length;
+                            const totalPrec = dayPrecs.reduce((sum, prec) => sum + prec, 0);
+
+                            let sunshineIcon = avgTemp > 30 ? '☀️' : avgTemp > 25 ? '🌤️' : '⛅';
+                            let rainIcon = totalPrec > 10 ? '🌧️'
+                                : totalPrec > 2 ? '🌦️'
+                                : totalPrec > 0 ? '💧'
+                                : avgTemp <= 25 ? '🌫️' : '☁️';
+
+                            const date = new Date(times[start]);
+                            const dayStr = date.toLocaleString('vi-VN', { day: 'numeric', month: 'numeric' });
+
+                            const forecastItem = `
+                                <div class="forecast-item">
+                                    <span class="time">Ngày ${dayStr}</span>
+                                    <div class="weather-data">
+                                        <span class="temperature">${avgTemp.toFixed(1)}°C</span>
+                                        <span class="humidity">${avgHum.toFixed(0)}%</span>
+                                        <span class="sunshine">${sunshineIcon}</span>
+                                        <span class="rain">${rainIcon}</span>
+                                    </div>
+                                </div>
+                            `;
+                            forecastContainer.innerHTML += forecastItem;
+                        }
+                    }
+                } else {
+                    console.warn('No weather data AVAILABLE from Open-Meteo');
+                    document.getElementById('precipitation').textContent = 'N/A';
+                    document.getElementById('weather-forecast').innerHTML = '<div>Không có dự báo thời tiết</div>';
+                }
+            } catch (error) {
+                console.error('Error fetching weather data:', error.message);
+                document.getElementById('precipitation').textContent = 'Lỗi';
+                document.getElementById('weather-forecast').innerHTML = '<div>Lỗi tải dự báo</div>';
+            }
+        }
+
+        // Function to parse Vietnamese date-time format (dd/mm/yyyy hh:mm) to Date object
+        function parseVietnameseDateTime(dateStr) {
+            const regex = /^(\d{2})\/(\d{2})\/(\d{4}) (\d{2}):(\d{2})$/;
+            const match = dateStr.match(regex);
+            if (!match) return null;
+            const [, day, month, year, hour, minute] = match;
+            return new Date(year, month - 1, day, hour, minute, 0);
+        }
+
+        // Function to parse timestamp from historical data (dd/mm/yyyy, hh:mm:ss AM/PM)
+        function parseTimestamp(timestamp) {
+            const regex = /^(\d{2})\/(\d{2})\/(\d{4}), (\d{1,2}):(\d{2}):(\d{2}) (AM|PM)$/;
+            const match = timestamp.match(regex);
+            if (!match) return null;
+            let [, day, month, year, hour, minute, second, period] = match;
+            hour = parseInt(hour);
+            if (period === 'PM' && hour !== 12) hour += 12;
+            if (period === 'AM' && hour === 12) hour = 0;
+            return new Date(year, month - 1, day, hour, minute, second);
+        }
+
+        // Function to update the data table
+        function updateDataTable() {
+            const tableBody = document.getElementById('data-table-body');
+            const warningMessage = document.getElementById('warning-message');
+            tableBody.innerHTML = ''; // Clear existing rows
+
+            // Display only the latest 100 records
+            const displayData = historicalData.slice(0, 100);
+            displayData.forEach(data => {
+                const row = `
+                    <tr>
+                        <td>${data.timestamp}</td>
+                        <td>${data.temperature}</td>
+                        <td>${data.humidity}</td>
+                        <td>${data.precipitation}</td>
+                        <td>${data.nh3}</td>
+                        <td>${data.soil_moisture}</td>
+                    </tr>
+                `;
+                tableBody.innerHTML += row;
+            });
+
+            // Hide warning message and chart by default
+            warningMessage.style.display = 'none';
+            document.getElementById('chart-container').classList.remove('active');
+            document.getElementById('chart-type').style.display = 'none';
+        }
+
+        // Function to filter data based on date-time range
+        function filterData() {
+            const fromDateStr = document.getElementById('date-from').value;
+            const toDateStr = document.getElementById('date-to').value;
+            const warningMessage = document.getElementById('warning-message');
+
+            if (!fromDateStr || !toDateStr) {
+                alert('Vui lòng chọn cả ngày giờ bắt đầu và ngày giờ kết thúc.');
+                warningMessage.style.display = 'none';
+                return;
+            }
+
+            const fromDate = parseVietnameseDateTime(fromDateStr);
+            let toDate = parseVietnameseDateTime(toDateStr);
+
+            if (!fromDate || !toDate) {
+                alert('Định dạng ngày giờ không hợp lệ.');
+                warningMessage.style.display = 'none';
+                return;
+            }
+
+            // Set toDate to include the last second of the selected minute
+            toDate.setSeconds(59, 999);
+
+            if (fromDate > toDate) {
+                alert('Ngày giờ bắt đầu phải trước hoặc bằng ngày giờ kết thúc.');
+                warningMessage.style.display = 'none';
+                return;
+            }
+
+            // Filter historical data
+            const filteredData = historicalData.filter(data => {
+                const dataDate = parseTimestamp(data.timestamp);
+                return dataDate && dataDate >= fromDate && dataDate <= toDate;
+            });
+
+            // Update table with filtered data
+            const tableBody = document.getElementById('data-table-body');
+            tableBody.innerHTML = '';
+            if (filteredData.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="6">Không có dữ liệu trong khoảng thời gian đã chọn.</td></tr>';
+                warningMessage.style.display = 'block';
+            } else {
+                filteredData.forEach(data => {
+                    const row = `
+                        <tr>
+                            <td>${data.timestamp}</td>
+                            <td>${data.temperature}</td>
+                            <td>${data.humidity}</td>
+                            <td>${data.precipitation}</td>
+                            <td>${data.nh3}</td>
+                            <td>${data.soil_moisture}</td>
+                        </tr>
+                    `;
+                    tableBody.innerHTML += row;
+                });
+                warningMessage.style.display = 'block';
+            }
+
+            // Hide chart if visible
+            document.getElementById('chart-container').classList.remove('active');
+            document.getElementById('chart-type').style.display = 'none';
+            if (chartInstance) {
+                chartInstance.destroy();
+                chartInstance = null;
+            }
+        }
+
+        // Function to toggle chart options
+        function toggleChartOptions() {
+            const chartTypeSelect = document.getElementById('chart-type');
+            chartTypeSelect.style.display = chartTypeSelect.style.display === 'none' ? 'block' : 'none';
+            if (chartTypeSelect.style.display === 'block') {
+                chartTypeSelect.onchange = () => drawChart();
+            }
+        }
+
+        // Function to draw chart based on table data
+        function drawChart() {
+            const tableBody = document.getElementById('data-table-body');
+            const rows = tableBody.getElementsByTagName('tr');
+            const chartType = document.getElementById('chart-type').value;
+            const fromDateStr = document.getElementById('date-from').value;
+            const toDateStr = document.getElementById('date-to').value;
+
+            // Check if table is empty or has no data
+            if (rows.length === 0 || (rows.length === 1 && rows[0].textContent.includes('Không có dữ liệu'))) {
+                alert('Không có dữ liệu trong bảng để vẽ biểu đồ.');
+                return;
+            }
+
+            // Extract data from table
+            const labels = [];
+            const temperatures = [];
+            const humidities = [];
+            const precipitations = [];
+            const nh3s = [];
+            const soilMoistures = [];
+
+            Array.from(rows).forEach(row => {
+                const cells = row.getElementsByTagName('td');
+                labels.push(cells[0].textContent); // Timestamp
+                temperatures.push(cells[1].textContent !== 'N/A' ? parseFloat(cells[1].textContent) : null);
+                humidities.push(cells[2].textContent !== 'N/A' ? parseFloat(cells[2].textContent) : null);
+                precipitations.push(cells[3].textContent !== 'N/A' ? parseFloat(cells[3].textContent) : null);
+                nh3s.push(cells[4].textContent !== 'N/A' ? parseFloat(cells[4].textContent) : null);
+                soilMoistures.push(cells[5].textContent !== 'N/A' ? parseFloat(cells[5].textContent) : null);
+            });
+
+            // Prepare datasets for chart
+            const datasets = [
+                {
+                    label: 'Nhiệt độ (°C)',
+                    data: temperatures,
+                    borderColor: 'rgba(230, 57, 70, 1)',
+                    backgroundColor: 'rgba(230, 57, 70, 0.2)',
+                    fill: chartType === 'line',
+                    tension: 0.4
+                },
+                {
+                    label: 'Độ ẩm (%)',
+                    data: humidities,
+                    borderColor: 'rgba(29, 132, 198, 1)',
+                    backgroundColor: 'rgba(29, 132, 198, 0.2)',
+                    fill: chartType === 'line',
+                    tension: 0.4
+                },
+                {
+                    label: 'Lượng mưa (mm)',
+                    data: precipitations,
+                    borderColor: 'rgba(9, 132, 227, 1)',
+                    backgroundColor: 'rgba(9, 132, 227, 0.2)',
+                    fill: chartType === 'line',
+                    tension: 0.4
+                },
+                {
+                    label: 'Nồng độ NH3+ (ppm)',
+                    data: nh3s,
+                    borderColor: 'rgba(114, 9, 183, 1)',
+                    backgroundColor: 'rgba(114, 9, 183, 0.2)',
+                    fill: chartType === 'line',
+                    tension: 0.4
+                },
+                {
+                    label: 'Độ ẩm đất (%)',
+                    data: soilMoistures,
+                    borderColor: 'rgba(44, 160, 44, 1)',
+                    backgroundColor: 'rgba(44, 160, 44, 0.2)',
+                    fill: chartType === 'line',
+                    tension: 0.4
+                }
+            ];
+
+            // Destroy previous chart if exists
+            if (chartInstance) {
+                chartInstance.destroy();
+            }
+
+            // Create new chart
+            const ctx = document.getElementById('data-chart').getContext('2d');
+            chartInstance = new Chart(ctx, {
+                type: chartType,
+                data: {
+                    labels: labels,
+                    datasets: datasets
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        x: {
+                            display: true,
+                            title: {
+                                display: true,
+                                text: 'Thời gian'
+                            }
+                        },
+                        y: {
+                            display: true,
+                            title: {
+                                display: true,
+                                text: 'Giá trị'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        },
+                        title: {
+                            display: true,
+                            text: fromDateStr && toDateStr ? `Biểu đồ dữ liệu từ ${fromDateStr} đến ${toDateStr}` : 'Biểu đồ dữ liệu gần đây'
+                        }
+                    }
+                }
+            });
+
+            // Show chart container
+            document.getElementById('chart-container').classList.add('active');
+        }
+
+        // Function to clean old data from Firebase (older than 2 months)
+        function cleanOldData() {
+            const twoMonthsAgo = new Date();
+            twoMonthsAgo.setDate(twoMonthsAgo.getDate() - 60);
+            historyRef.orderByChild('timestamp').endAt(twoMonthsAgo.toISOString()).once('value', (snapshot) => {
+                snapshot.forEach(child => {
+                    child.ref.remove();
+                });
+            });
+        }
+
+        // Function to update forecast based on selected option
+        function updateForecastHours() {
+            const option = document.getElementById('forecast-hours').value;
+            fetchWeatherData(option);
+        }
+
+        // Initial fetch with default 3 hours and update every 5 minutes
+        fetchWeatherData('3');
+        setInterval(() => fetchWeatherData(document.getElementById('forecast-hours').value), 1 *60* 1000); // Update every 5 minutes
+
+        // Update Calendar with Current Date and Time
+        function updateCalendar() {
+            const now = new Date();
+            const options = { timeZone: 'Asia/Ho_Chi_Minh' };
+
+            const day = now.getDate();
+            const monthYear = now.toLocaleString('vi-VN', { month: 'long', year: 'numeric', ...options });
+            const weekday = now.toLocaleString('vi-VN', { weekday: 'long', ...options });
+            const time = now.toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true, ...options });
+
+            document.getElementById('calendar-day').textContent = day;
+            document.getElementById('calendar-month-year').textContent = monthYear;
+            document.getElementById('calendar-weekday').textContent = weekday;
+            document.getElementById('calendar-time').textContent = time;
+        }
+
+        // Initial update and refresh every second
+        updateCalendar();
+        setInterval(updateCalendar, 1000);
+
+        // Load historical data from Firebase on page load, limit to 100 records
+        historyRef.limitToLast(100).on('value', (snapshot) => {
+            const data = snapshot.val();
+            if (data) {
+                historicalData = Object.values(data).sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+                updateDataTable();
+            }
+        });
+
+        // Clean old data every 24 hours
+        setInterval(cleanOldData, 24 * 60 * 60 * 1000);
+    </script>
+</body>
+</html>
