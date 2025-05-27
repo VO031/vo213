@@ -18,6 +18,8 @@
             --humidity-color: #1d84c6;
             --precipitation-color: #0984e3;
             --sunshine-color: #f4a261;
+            --menu-width: 250px;
+            --menu-trigger-width: 20px;
         }
 
         /* Light Mode Default */
@@ -34,6 +36,9 @@
             --calendar-bg: #fff;
             --calendar-border: #e74c3c;
             --calendar-shadow: rgba(0, 0, 0, 0.15);
+            --menu-bg: rgba(255, 255, 255, 0.9);
+            --menu-hover-bg: rgba(230, 230, 230, 0.8);
+            --menu-text: #1a2632;
         }
 
         /* Dark Mode Support */
@@ -52,6 +57,9 @@
                 --calendar-bg: #34495e;
                 --calendar-border: #c0392b;
                 --calendar-shadow: rgba(0, 0, 0, 0.4);
+                --menu-bg: rgba(40, 54, 70, 0.9);
+                --menu-hover-bg: rgba(60, 80, 100, 0.8);
+                --menu-text: #e6ecef;
             }
         }
 
@@ -70,6 +78,67 @@
             background: linear-gradient(135deg, var(--primary-gradient-start), var(--primary-gradient-end));
             padding: clamp(1.5rem, 5vw, 2.5rem);
             overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Menu Sidebar Styles */
+        .menu-container {
+            position: fixed;
+            top: 0;
+            left: calc(-1 * var(--menu-width));
+            width: var(--menu-width);
+            height: 100%;
+            background: var(--menu-bg);
+            backdrop-filter: var(--glass-blur);
+            border-right: 2px solid rgba(255, 255, 255, 0.4);
+            box-shadow: 0 8px 20px var(--shadow-color);
+            transition: transform var(--transition-duration) ease;
+            z-index: 1000;
+        }
+
+        .menu-container:hover,
+        .menu-trigger:hover ~ .menu-container {
+            transform: translateX(var(--menu-width));
+        }
+
+        .menu-trigger {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: var(--menu-trigger-width);
+            height: 100%;
+            background: rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+            z-index: 1100;
+        }
+
+        .menu {
+            padding: 2rem 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .menu-item {
+            padding: 1rem;
+            color: var(--menu-text);
+            font-size: clamp(1rem, 2vw, 1.2rem);
+            font-weight: 500;
+            border-radius: 0.6rem;
+            transition: background var(--transition-duration) ease;
+            cursor: pointer;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .menu-item:hover {
+            background: var(--menu-hover-bg);
+        }
+
+        .menu-item i {
+            font-size: 1.2rem;
         }
 
         /* Body Container to Split Boxes and Calendar */
@@ -80,6 +149,7 @@
             max-width: var(--max-container-width);
             margin: 0 auto;
             align-items: flex-start;
+            margin-left: calc(var(--menu-trigger-width) + 1rem);
         }
 
         /* Right Side Container (Calendar + Weather) */
@@ -119,14 +189,13 @@
             }
         }
 
-        /* Box Container (Left Side) with Background Image */
         .box-container {
             flex: 1;
             min-width: 0;
             display: flex;
             flex-direction: column;
             gap: 2rem;
-            background-image: url('img/nendata');
+            background-image: url("img/nendata.jpg");
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
@@ -202,109 +271,6 @@
         #soil_moisture { color: #2ca02c; }
         #nh3 { color: #7209b7; }
         #precipitation { color: var(--precipitation-color); }
-
-        /* Filter Container */
-        .filter-container {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 1rem;
-            align-items: center;
-            margin-bottom: 1rem;
-            background: var(--box-bg);
-            padding: 1rem;
-            border-radius: var(--border-radius);
-            box-shadow: 0 8px 20px var(--shadow-color);
-        }
-
-        .filter-container label {
-            color: var(--text-dark);
-            font-weight: 500;
-            font-size: clamp(0.9rem, 2vw, 1rem);
-        }
-
-        .filter-container input {
-            padding: 0.5rem;
-            border: 1px solid rgba(0, 0, 0, 0.2);
-            border-radius: 0.5rem;
-            font-family: var(--font-family);
-            font-size: clamp(0.9rem, 2vw, 1rem);
-        }
-
-        .filter-container button,
-        .chart-button {
-            padding: 0.5rem 1rem;
-            border: none;
-            border-radius: 0.5rem;
-            background: linear-gradient(135deg, var(--calendar-gradient-start), var(--calendar-gradient-end));
-            color: var(--text-dark);
-            font-weight: 500;
-            cursor: pointer;
-            transition: transform var(--transition-duration) ease, box-shadow var(--transition-duration) ease;
-        }
-
-        .filter-container button:hover,
-        .chart-button:hover {
-            transform: translateY(-0.2rem);
-            box-shadow: 0 4px 15px var(--shadow-color);
-        }
-
-        .warning-message {
-            color: #e74c3c;
-            font-size: clamp(0.8rem, 1.8vw, 0.9rem);
-            margin-top: 0.5rem;
-        }
-
-        /* Table Styles */
-        .data-table-container {
-            margin-top: 2rem;
-            background: var(--box-bg);
-            padding: 1rem;
-            border-radius: var(--border-radius);
-            box-shadow: 0 8px 20px var(--shadow-color);
-            overflow-x: auto;
-        }
-
-        .data-table {
-            width: 100%;
-            border-collapse: collapse;
-            color: var(--text-dark);
-        }
-
-        .data-table th,
-        .data-table td {
-            padding: 0.8rem;
-            text-align: center;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-        }
-
-        .data-table th {
-            background: rgba(0, 0, 0, 0.05);
-            font-weight: 600;
-            text-transform: uppercase;
-            font-size: clamp(0.9rem, 2vw, 1rem);
-        }
-
-        .data-table td {
-            font-size: clamp(0.9rem, 2vw, 1rem);
-        }
-
-        .data-table tbody tr:hover {
-            background: rgba(0, 0, 0, 0.03);
-        }
-
-        /* Chart Container */
-        .chart-container {
-            margin-top: 2rem;
-            background: var(--box-bg);
-            padding: 1rem;
-            border-radius: var(--border-radius);
-            box-shadow: 0 8px 20px var(--shadow-color);
-            display: none;
-        }
-
-        .chart-container.active {
-            display: block;
-        }
 
         /* Calendar Container (Separate Right Side) with Background */
         .calendar-container {
@@ -435,7 +401,7 @@
 
         /* Accessibility Enhancements */
         @media (prefers-reduced-motion: reduce) {
-            .box, .title, .calendar-container, .weather-container {
+            .box, .title, .calendar-container, .weather-container, .menu-container {
                 animation: none;
                 transition: none;
             }
@@ -446,6 +412,7 @@
             .body-container {
                 flex-direction: column;
                 align-items: center;
+                margin-left: 0;
             }
 
             .box-container {
@@ -455,6 +422,20 @@
             .right-side {
                 width: 100%;
                 max-width: 360px;
+            }
+
+            .menu-container {
+                width: 100%;
+                left: calc(-100%);
+            }
+
+            .menu-container:hover,
+            .menu-trigger:hover ~ .menu-container {
+                transform: translateX(100%);
+            }
+
+            .menu-trigger {
+                width: 15px;
             }
         }
 
@@ -507,22 +488,30 @@
                 font-size: clamp(0.8rem, 1.5vw, 0.9rem);
             }
 
-            .data-table th,
-            .data-table td {
-                padding: 0.5rem;
-                font-size: clamp(0.8rem, 1.5vw, 0.9rem);
-            }
-
-            .filter-container {
-                flex-direction: column;
-                align-items: flex-start;
+            .menu-item {
+                font-size: clamp(0.9rem, 1.8vw, 1rem);
             }
         }
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" rel="stylesheet">
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
 </head>
 <body>
+    <!-- Menu Trigger and Sidebar -->
+    <div class="menu-trigger"></div>
+    <div class="menu-container">
+        <div class="menu">
+            <a href="index.html" class="menu-item"><i class="fas fa-home"></i> Trang chủ</a>
+            <a href="dataanalist.html" class="menu-item"><i class="fas fa-chart-line"></i> Phân tích dữ liệu</a>
+            <a href="#" class="menu-item"><i class="fas fa-seedling"></i> Đề xuất giống</a>
+               <a href="#" class="menu-item"><i class="fas fa-gamepad"></i> Điều khiển</a>
+            <a href="#" class="menu-item"><i class="fas fa-comment"></i> Chat Box</a>
+            <a href="#" class="menu-item"><i class="fas fa-cog"></i> Cài đặt</a>
+            <a href="#" class="menu-item"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a>
+        </div>
+    </div>
+
     <div class="title">Hệ thống dự đoán sản lượng và giống phù hợp</div>
     <div class="body-container">
         <!-- Box Container (Left Side) with Background -->
@@ -550,47 +539,6 @@
                     <h1>Lượng mưa</h1>
                     <div class="data"><span class="value" id="precipitation">--</span> mm</div>
                 </div>
-            </div>
-
-            <!-- Filter Container -->
-            <div class="filter-container">
-                <label for="date-from">Từ ngày:</label>
-                <input type="text" id="date-from" placeholder="Chọn ngày giờ bắt đầu">
-                <label for="date-to">Đến ngày:</label>
-                <input type="text" id="date-to" placeholder="Chọn ngày giờ kết thúc">
-                <button onclick="filterData()">Lọc dữ liệu</button>
-                <button class="chart-button" onclick="toggleChartOptions()">Vẽ biểu đồ</button>
-                <select id="chart-type" style="display: none;">
-                    <option value="line">Biểu đồ đường</option>
-                    <option value="bar">Biểu đồ cột</option>
-                </select>
-                <div class="warning-message" id="warning-message" style="display: none;">
-                    Dữ liệu có thể đã được reset trước đó.
-                </div>
-            </div>
-
-            <!-- Table Container Below Boxes -->
-            <div class="data-table-container">
-                <table class="data-table" id="data-table">
-                    <thead>
-                        <tr>
-                            <th>Thời gian</th>
-                            <th>Nhiệt độ (°C)</th>
-                            <th>Độ ẩm (%)</th>
-                            <th>Lượng mưa (mm)</th>
-                            <th>Nồng độ NH3+ (ppm)</th>
-                            <th>Độ ẩm đất (%)</th>
-                        </tr>
-                    </thead>
-                    <tbody id="data-table-body">
-                        <!-- Rows will be added dynamically -->
-                    </tbody>
-                </table>
-            </div>
-
-            <!-- Chart Container -->
-            <div class="chart-container" id="chart-container">
-                <canvas id="data-chart"></canvas>
             </div>
         </div>
 
@@ -630,9 +578,6 @@
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-    <!-- Flatpickr and Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <script>
         // Firebase configuration
@@ -653,62 +598,8 @@
         // Reference to Firebase Realtime Database
         const database = firebase.database();
         const dataRef = database.ref('data');
-        const historyRef = database.ref('history');
 
-        // Array to store historical data locally
-        let historicalData = [];
-        let chartInstance = null;
-
-        // Initialize Flatpickr for date pickers with time
-        const fromPicker = flatpickr("#date-from", {
-            enableTime: true,
-            dateFormat: "d/m/Y H:i",
-            time_24hr: true,
-            maxDate: "today",
-            defaultDate: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), // 7 days ago
-            locale: {
-                firstDayOfWeek: 1,
-                weekdays: {
-                    shorthand: ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'],
-                    longhand: ['Chủ Nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy']
-                },
-                months: {
-                    shorthand: ['Th1', 'Th2', 'Th3', 'Th4', 'Th5', 'Th6', 'Th7', 'Th8', 'Th9', 'Th10', 'Th11', 'Th12'],
-                    longhand: ['Tháng Một', 'Tháng Hai', 'Tháng Ba', 'Tháng Tư', 'Tháng Năm', 'Tháng Sáu', 'Tháng Bảy', 'Tháng Tám', 'Tháng Chín', 'Tháng Mười', 'Tháng Mười Một', 'Tháng Mười Hai']
-                }
-            },
-            onChange: function(selectedDates) {
-                if (selectedDates[0]) {
-                    toPicker.set('minDate', selectedDates[0]);
-                }
-            }
-        });
-
-        const toPicker = flatpickr("#date-to", {
-            enableTime: true,
-            dateFormat: "d/m/Y H:i",
-            time_24hr: true,
-            maxDate: "today",
-            defaultDate: new Date(), // Current time
-            locale: {
-                firstDayOfWeek: 1,
-                weekdays: {
-                    shorthand: ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'],
-                    longhand: ['Chủ Nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy']
-                },
-                months: {
-                    shorthand: ['Th1', 'Th2', 'Th3', 'Th4', 'Th5', 'Th6', 'Th7', 'Th8', 'Th9', 'Th10', 'Th11', 'Th12'],
-                    longhand: ['Tháng Một', 'Tháng Hai', 'Tháng Ba', 'Tháng Tư', 'Tháng Năm', 'Tháng Sáu', 'Tháng Bảy', 'Tháng Tám', 'Tháng Chín', 'Tháng Mười', 'Tháng Mười Một', 'Tháng Mười Hai']
-                }
-            },
-            onChange: function(selectedDates) {
-                if (selectedDates[0]) {
-                    fromPicker.set('maxDate', selectedDates[0]);
-                }
-            }
-        });
-
-        // Listen for Firebase real-time updates for current data
+        // Listen for Firebase real-time updates
         dataRef.on('value', (snapshot) => {
             const data = snapshot.val();
             if (data) {
@@ -717,6 +608,7 @@
                 document.getElementById('humidity').textContent = data.humidity ? data.humidity.toFixed(1) : 'N/A';
                 document.getElementById('soil_moisture').textContent = data.soil_moisture ? data.soil_moisture.toFixed(1) : 'N/A';
                 document.getElementById('nh3').textContent = data.nh3 ? data.nh3.toFixed(1) : 'N/A';
+                // Note: Precipitation is updated via Open-Meteo API, not Firebase listener
             } else {
                 console.warn('No data available in Firebase at /data');
                 document.getElementById('temperature').textContent = 'N/A';
@@ -732,465 +624,315 @@
             document.getElementById('nh3').textContent = 'Error';
         });
 
-        // Fetch weather data from Open-Meteo API and update table every 5 minutes
-        async function fetchWeatherData(option) {
-            const coordinates = {
-                latitude: 10.6700, // Suối Nghệ, Châu Đức, BRVT
-                longitude: 107.2500
-            };
-            const isLongTerm = option === '2days' || option === '3days' || option === '384';
-            const url = `https://api.open-meteo.com/v1/forecast?latitude=${coordinates.latitude}&longitude=${coordinates.longitude}&hourly=temperature_2m,relative_humidity_2m,precipitation&timezone=Asia/Ho_Chi_Minh${isLongTerm ? '&forecast_days=16' : ''}`;
+        // Fetch weather data from Open-Meteo API
+ async function fetchWeatherData(option) {
+    const coordinates = {
+        latitude: 10.6700, // Suối Nghệ, Châu Đức, BRVT
+        longitude: 107.2500
+    };
+    const isLongTerm = option === '2days' || option === '3days' || option === '384';
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${coordinates.latitude}&longitude=${coordinates.longitude}&hourly=temperature_2m,relative_humidity_2m,precipitation&timezone=Asia/Ho_Chi_Minh${isLongTerm ? '&forecast_days=16' : ''}`;
+    
+    try {
+        const response = await fetch(url);
+        if (!response.ok) throw new Error(`HTTP error ${response.status}`);
+        const data = await response.json();
+        if (data.hourly) {
+            // Update current precipitation
+            const latestPrecipitation = data.hourly.precipitation[0];
+            document.getElementById('precipitation').textContent = latestPrecipitation ? latestPrecipitation.toFixed(1) : '0.0';
+            console.log('Current precipitation:', latestPrecipitation);
+
+            // Send precipitation to Firebase
             try {
-                const response = await fetch(url);
-                const data = await response.json();
-                if (data.hourly) {
-                    // Update current precipitation
-                    const latestPrecipitation = data.hourly.precipitation[0];
-                    document.getElementById('precipitation').textContent = latestPrecipitation ? latestPrecipitation.toFixed(1) : '0.0';
-                    console.log('Current precipitation:', latestPrecipitation);
+                const precipitationValue = typeof latestPrecipitation === 'number' && !isNaN(latestPrecipitation) ? latestPrecipitation : 0;
+                await database.ref('data/precipitation').set(precipitationValue);
+                console.log('Precipitation sent to Firebase as number:', precipitationValue);
+            } catch (error) {
+                console.error('Error sending precipitation to Firebase:', error.message);
+            }
 
-                    // Update historical data with the latest values
-                    const now = new Date();
-                    const timestamp = now.toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' });
-                    const currentData = {
-                        timestamp: timestamp,
-                        temperature: parseFloat(document.getElementById('temperature').textContent) || 'N/A',
-                        humidity: parseFloat(document.getElementById('humidity').textContent) || 'N/A',
-                        precipitation: latestPrecipitation ? latestPrecipitation.toFixed(1) : '0.0',
-                        nh3: parseFloat(document.getElementById('nh3').textContent) || 'N/A',
-                        soil_moisture: parseFloat(document.getElementById('soil_moisture').textContent) || 'N/A'
-                    };
+            // Update weather forecast based on selected option
+            const forecastContainer = document.getElementById('weather-forecast');
+            forecastContainer.innerHTML = ''; // Clear previous forecast
 
-                    // Add to historical data
-                    historicalData.unshift(currentData); // Add to the beginning
-                    if (historicalData.length > 17280) { // Limit to 2 months (~17,280 entries)
-                        historicalData.pop();
-                    }
+            const hours = option === '2days' ? 48 : option === '3days' ? 72 : option === '384' ? 384 : parseInt(option);
+            const times = data.hourly.time;
+            const temperatures = data.hourly.temperature_2m;
+            const humidities = data.hourly.relative_humidity_2m;
+            const precipitations = data.hourly.precipitation;
 
-                    // Save to Firebase history
-                    historyRef.push(currentData);
+            // Get current time in Vietnam timezone
+            const now = new Date();
+            const currentTime = now.getTime();
 
-                    // Update the table
-                    updateDataTable();
+            if (hours <= 12) {
+                // Detailed hourly forecast for 3, 6, 12 hours
+                let count = 0; // Đếm số khung giờ được hiển thị
+                for (let index = 0; index < times.length && count < hours; index++) {
+                    const forecastTime = new Date(times[index]).getTime();
+                    // Chỉ hiển thị các khung giờ trong tương lai
+                    if (forecastTime > currentTime) {
+                        const date = new Date(times[index]);
+                        const hours = date.getHours();
+                        const period = hours >= 12 ? 'PM' : 'AM';
+                        const displayHour = hours % 12 || 12;
 
-                    // Update weather forecast based on selected option
-                    const forecastContainer = document.getElementById('weather-forecast');
-                    forecastContainer.innerHTML = ''; // Clear previous forecast
-
-                    const hours = option === '2days' ? 48 : option === '3days' ? 72 : option === '384' ? 384 : parseInt(option);
-                    const times = data.hourly.time.slice(1, hours + 1);
-                    const temperatures = data.hourly.temperature_2m.slice(1, hours + 1);
-                    const humidities = data.hourly.relative_humidity_2m.slice(1, hours + 1);
-                    const precipitations = data.hourly.precipitation.slice(1, hours + 1);
-
-                    if (hours <= 12) {
-                        // Detailed hourly forecast for 3, 6, 12 hours
-                        times.forEach((time, index) => {
-                            const date = new Date(time);
-                            const hours = date.getHours();
-                            const period = hours >= 12 ? 'PM' : 'AM';
-                            const displayHour = hours % 12 || 12;
-
-                            const isNight = hours >= 18 || hours < 6;
-                            let sunshineIcon = isNight
-                                ? temperatures[index] > 30 ? '🌙' : temperatures[index] > 25 ? '🌜' : '🌗'
-                                : temperatures[index] > 30 ? '☀️' : temperatures[index] > 25 ? '🌤️' : '⛅';
-                            let rainIcon = precipitations[index] > 10 ? '🌧️'
-                                : precipitations[index] > 2 ? '🌦️'
-                                : precipitations[index] > 0 ? '💧'
-                                : temperatures[index] <= 25 ? '🌫️' : '☁️';
-
-                            const forecastItem = `
-                                <div class="forecast-item">
-                                    <span class="time">${displayHour} ${period}</span>
-                                    <div class="weather-data">
-                                        <span class="temperature">${temperatures[index].toFixed(1)}°C</span>
-                                        <span class="humidity">${humidities[index]}%</span>
-                                        <span class="sunshine">${sunshineIcon}</span>
-                                        <span class="rain">${rainIcon}</span>
-                                    </div>
-                                </div>
-                            `;
-                            forecastContainer.innerHTML += forecastItem;
-                        });
-                    } else if (hours === 24) {
-                        // Summary forecast for 24 hours (single line)
-                        const avgTemperature = temperatures.reduce((sum, temp) => sum + temp, 0) / temperatures.length;
-                        const avgHumidity = humidities.reduce((sum, hum) => sum + hum, 0) / humidities.length;
-                        const totalPrecipitation = precipitations.reduce((sum, prec) => sum + prec, 0);
-
-                        let sunshineIcon = avgTemperature > 30 ? '☀️' : avgTemperature > 25 ? '🌤️' : '⛅';
-                        let rainIcon = totalPrecipitation > 10 ? '🌧️'
-                            : totalPrecipitation > 2 ? '🌦️'
-                            : totalPrecipitation > 0 ? '💧'
-                            : avgTemperature <= 25 ? '🌫️' : '☁️';
+                        let sunshineIcon = ''; // Bỏ icon nắng
+                        let rainIcon = precipitations[index] > 10 ? '🌧️'
+                            : precipitations[index] > 2 ? '🌦️'
+                            : precipitations[index] > 0 ? '💧'
+                            : temperatures[index] <= 25 ? '🌫️' : '☁️';
 
                         const forecastItem = `
                             <div class="forecast-item">
-                                <span class="time">Trong 24 giờ tới</span>
+                                <span class="time">${displayHour} ${period}</span>
                                 <div class="weather-data">
-                                    <span class="temperature">${avgTemperature.toFixed(1)}°C</span>
-                                    <span class="humidity">${avgHumidity.toFixed(0)}%</span>
+                                    <span class="temperature">${temperatures[index].toFixed(1)}°C</span>
+                                    <span class="humidity">${humidities[index]}%</span>
                                     <span class="sunshine">${sunshineIcon}</span>
                                     <span class="rain">${rainIcon}</span>
                                 </div>
                             </div>
                         `;
                         forecastContainer.innerHTML += forecastItem;
-                    } else if (option === '2days' || option === '3days') {
-                        // Daily forecast for 2 or 3 days
-                        const numDays = option === '2days' ? 2 : 3;
-                        for (let day = 0; day < numDays; day++) {
-                            const start = day * 24;
-                            const end = (day + 1) * 24;
-                            const dayTemps = temperatures.slice(start, end);
-                            const dayHums = humidities.slice(start, end);
-                            const dayPrecs = precipitations.slice(start, end);
-
-                            const avgTemp = dayTemps.reduce((sum, temp) => sum + temp, 0) / dayTemps.length;
-                            const avgHum = dayHums.reduce((sum, hum) => sum + hum, 0) / dayHums.length;
-                            const totalPrec = dayPrecs.reduce((sum, prec) => sum + prec, 0);
-
-                            let sunshineIcon = avgTemp > 30 ? '☀️' : avgTemp > 25 ? '🌤️' : '⛅';
-                            let rainIcon = totalPrec > 10 ? '🌧️'
-                                : totalPrec > 2 ? '🌦️'
-                                : totalPrec > 0 ? '💧'
-                                : avgTemp <= 25 ? '🌫️' : '☁️';
-
-                            const date = new Date(times[start]);
-                            const dayStr = date.toLocaleString('vi-VN', { day: 'numeric', month: 'numeric' });
-
-                            const forecastItem = `
-                                <div class="forecast-item">
-                                    <span class="time">Ngày ${dayStr}</span>
-                                    <div class="weather-data">
-                                        <span class="temperature">${avgTemp.toFixed(1)}°C</span>
-                                        <span class="humidity">${avgHum.toFixed(0)}%</span>
-                                        <span class="sunshine">${sunshineIcon}</span>
-                                        <span class="rain">${rainIcon}</span>
-                                    </div>
-                                </div>
-                            `;
-                            forecastContainer.innerHTML += forecastItem;
-                        }
-                    } else if (option === '384') {
-                        // Summary daily forecast for 16 days
-                        for (let day = 0; day < 16; day++) {
-                            const start = day * 24;
-                            const end = (day + 1) * 24;
-                            const dayTemps = temperatures.slice(start, end);
-                            const dayHums = humidities.slice(start, end);
-                            const dayPrecs = precipitations.slice(start, end);
-
-                            const avgTemp = dayTemps.reduce((sum, temp) => sum + temp, 0) / dayTemps.length;
-                            const avgHum = dayHums.reduce((sum, hum) => sum + hum, 0) / dayHums.length;
-                            const totalPrec = dayPrecs.reduce((sum, prec) => sum + prec, 0);
-
-                            let sunshineIcon = avgTemp > 30 ? '☀️' : avgTemp > 25 ? '🌤️' : '⛅';
-                            let rainIcon = totalPrec > 10 ? '🌧️'
-                                : totalPrec > 2 ? '🌦️'
-                                : totalPrec > 0 ? '💧'
-                                : avgTemp <= 25 ? '🌫️' : '☁️';
-
-                            const date = new Date(times[start]);
-                            const dayStr = date.toLocaleString('vi-VN', { day: 'numeric', month: 'numeric' });
-
-                            const forecastItem = `
-                                <div class="forecast-item">
-                                    <span class="time">Ngày ${dayStr}</span>
-                                    <div class="weather-data">
-                                        <span class="temperature">${avgTemp.toFixed(1)}°C</span>
-                                        <span class="humidity">${avgHum.toFixed(0)}%</span>
-                                        <span class="sunshine">${sunshineIcon}</span>
-                                        <span class="rain">${rainIcon}</span>
-                                    </div>
-                                </div>
-                            `;
-                            forecastContainer.innerHTML += forecastItem;
-                        }
+                        count++;
                     }
-                } else {
-                    console.warn('No weather data AVAILABLE from Open-Meteo');
-                    document.getElementById('precipitation').textContent = 'N/A';
-                    document.getElementById('weather-forecast').innerHTML = '<div>Không có dự báo thời tiết</div>';
                 }
-            } catch (error) {
-                console.error('Error fetching weather data:', error.message);
-                document.getElementById('precipitation').textContent = 'Lỗi';
-                document.getElementById('weather-forecast').innerHTML = '<div>Lỗi tải dự báo</div>';
-            }
-        }
+                if (count === 0) {
+                    forecastContainer.innerHTML = '<div>Không có dự báo cho khung giờ này</div>';
+                }
+            } else if (hours === 24) {
+                // Summary forecast for 24 hours (single line)
+                let futureTemps = [];
+                let futureHums = [];
+                let futurePrecs = [];
+                for (let index = 0; index < times.length && futureTemps.length < 24; index++) {
+                    const forecastTime = new Date(times[index]).getTime();
+                    if (forecastTime > currentTime) {
+                        futureTemps.push(temperatures[index]);
+                        futureHums.push(humidities[index]);
+                        futurePrecs.push(precipitations[index]);
+                    }
+                }
 
-        // Function to parse Vietnamese date-time format (dd/mm/yyyy hh:mm) to Date object
-        function parseVietnameseDateTime(dateStr) {
-            const regex = /^(\d{2})\/(\d{2})\/(\d{4}) (\d{2}):(\d{2})$/;
-            const match = dateStr.match(regex);
-            if (!match) return null;
-            const [, day, month, year, hour, minute] = match;
-            return new Date(year, month - 1, day, hour, minute, 0);
-        }
+                if (futureTemps.length === 0) {
+                    forecastContainer.innerHTML = '<div>Không có dự báo cho khung giờ này</div>';
+                    return;
+                }
 
-        // Function to parse timestamp from historical data (dd/mm/yyyy, hh:mm:ss AM/PM)
-        function parseTimestamp(timestamp) {
-            const regex = /^(\d{2})\/(\d{2})\/(\d{4}), (\d{1,2}):(\d{2}):(\d{2}) (AM|PM)$/;
-            const match = timestamp.match(regex);
-            if (!match) return null;
-            let [, day, month, year, hour, minute, second, period] = match;
-            hour = parseInt(hour);
-            if (period === 'PM' && hour !== 12) hour += 12;
-            if (period === 'AM' && hour === 12) hour = 0;
-            return new Date(year, month - 1, day, hour, minute, second);
-        }
+                const avgTemperature = futureTemps.reduce((sum, temp) => sum + temp, 0) / futureTemps.length;
+                const avgHumidity = futureHums.reduce((sum, hum) => sum + hum, 0) / futureHums.length;
+                const totalPrecipitation = futurePrecs.reduce((sum, prec) => sum + prec, 0);
 
-        // Function to update the data table
-        function updateDataTable() {
-            const tableBody = document.getElementById('data-table-body');
-            const warningMessage = document.getElementById('warning-message');
-            tableBody.innerHTML = ''; // Clear existing rows
+                let sunshineIcon = ''; // Bỏ icon nắng
+                let rainIcon = totalPrecipitation > 10 ? '🌧️'
+                    : totalPrecipitation > 2 ? '🌦️'
+                    : totalPrecipitation > 0 ? '💧'
+                    : avgTemperature <= 25 ? '🌫️' : '☁️';
 
-            // Display only the latest 100 records
-            const displayData = historicalData.slice(0, 100);
-            displayData.forEach(data => {
-                const row = `
-                    <tr>
-                        <td>${data.timestamp}</td>
-                        <td>${data.temperature}</td>
-                        <td>${data.humidity}</td>
-                        <td>${data.precipitation}</td>
-                        <td>${data.nh3}</td>
-                        <td>${data.soil_moisture}</td>
-                    </tr>
+                const forecastItem = `
+                    <div class="forecast-item">
+                        <span class="time">24 giờ tới</span>
+                        <div class="weather-data">
+                            <span class="temperature">${avgTemperature.toFixed(1)}°C</span>
+                            <span class="humidity">${avgHumidity.toFixed(0)}%</span>
+                            <span class="sunshine">${sunshineIcon}</span>
+                            <span class="rain">${rainIcon}</span>
+                        </div>
+                    </div>
                 `;
-                tableBody.innerHTML += row;
-            });
+                forecastContainer.innerHTML = forecastItem;
+            } else if (option === '2days' || option === '3days') {
+                // Daily forecast for 2 or 3 days
+                const numDays = option === '2days' ? 2 : 3;
+                let currentDay = null;
+                let dayTemps = [];
+                let dayHums = [];
+                let dayPrecs = [];
+                let dayStartTime = null;
+                let daysAdded = 0;
 
-            // Hide warning message and chart by default
-            warningMessage.style.display = 'none';
-            document.getElementById('chart-container').classList.remove('active');
-            document.getElementById('chart-type').style.display = 'none';
-        }
+                for (let index = 0; index < times.length && daysAdded < numDays; index++) {
+                    const forecastTime = new Date(times[index]);
+                    const forecastTimeMs = forecastTime.getTime();
+                    if (forecastTimeMs <= currentTime) continue; // Bỏ qua các khung giờ đã qua
 
-        // Function to filter data based on date-time range
-        function filterData() {
-            const fromDateStr = document.getElementById('date-from').value;
-            const toDateStr = document.getElementById('date-to').value;
-            const warningMessage = document.getElementById('warning-message');
+                    const forecastDay = forecastTime.toLocaleString('vi-VN', { day: 'numeric', month: 'numeric' });
 
-            if (!fromDateStr || !toDateStr) {
-                alert('Vui lòng chọn cả ngày giờ bắt đầu và ngày giờ kết thúc.');
-                warningMessage.style.display = 'none';
-                return;
-            }
+                    if (currentDay !== forecastDay) {
+                        if (dayTemps.length > 0) {
+                            // Xử lý ngày trước đó
+                            const avgTemp = dayTemps.reduce((sum, temp) => sum + temp, 0) / dayTemps.length;
+                            const avgHum = dayHums.reduce((sum, hum) => sum + hum, 0) / dayHums.length;
+                            const totalPrec = dayPrecs.reduce((sum, prec) => sum + prec, 0);
 
-            const fromDate = parseVietnameseDateTime(fromDateStr);
-            let toDate = parseVietnameseDateTime(toDateStr);
+                            let sunshineIcon = ''; // Bỏ icon nắng
+                            let rainIcon = totalPrec > 10 ? '🌧️'
+                                : totalPrec > 2 ? '🌦️'
+                                : totalPrec > 0 ? '💧'
+                                : avgTemp <= 25 ? '🌫️' : '☁️';
 
-            if (!fromDate || !toDate) {
-                alert('Định dạng ngày giờ không hợp lệ.');
-                warningMessage.style.display = 'none';
-                return;
-            }
-
-            // Set toDate to include the last second of the selected minute
-            toDate.setSeconds(59, 999);
-
-            if (fromDate > toDate) {
-                alert('Ngày giờ bắt đầu phải trước hoặc bằng ngày giờ kết thúc.');
-                warningMessage.style.display = 'none';
-                return;
-            }
-
-            // Filter historical data
-            const filteredData = historicalData.filter(data => {
-                const dataDate = parseTimestamp(data.timestamp);
-                return dataDate && dataDate >= fromDate && dataDate <= toDate;
-            });
-
-            // Update table with filtered data
-            const tableBody = document.getElementById('data-table-body');
-            tableBody.innerHTML = '';
-            if (filteredData.length === 0) {
-                tableBody.innerHTML = '<tr><td colspan="6">Không có dữ liệu trong khoảng thời gian đã chọn.</td></tr>';
-                warningMessage.style.display = 'block';
-            } else {
-                filteredData.forEach(data => {
-                    const row = `
-                        <tr>
-                            <td>${data.timestamp}</td>
-                            <td>${data.temperature}</td>
-                            <td>${data.humidity}</td>
-                            <td>${data.precipitation}</td>
-                            <td>${data.nh3}</td>
-                            <td>${data.soil_moisture}</td>
-                        </tr>
-                    `;
-                    tableBody.innerHTML += row;
-                });
-                warningMessage.style.display = 'block';
-            }
-
-            // Hide chart if visible
-            document.getElementById('chart-container').classList.remove('active');
-            document.getElementById('chart-type').style.display = 'none';
-            if (chartInstance) {
-                chartInstance.destroy();
-                chartInstance = null;
-            }
-        }
-
-        // Function to toggle chart options
-        function toggleChartOptions() {
-            const chartTypeSelect = document.getElementById('chart-type');
-            chartTypeSelect.style.display = chartTypeSelect.style.display === 'none' ? 'block' : 'none';
-            if (chartTypeSelect.style.display === 'block') {
-                chartTypeSelect.onchange = () => drawChart();
-            }
-        }
-
-        // Function to draw chart based on table data
-        function drawChart() {
-            const tableBody = document.getElementById('data-table-body');
-            const rows = tableBody.getElementsByTagName('tr');
-            const chartType = document.getElementById('chart-type').value;
-            const fromDateStr = document.getElementById('date-from').value;
-            const toDateStr = document.getElementById('date-to').value;
-
-            // Check if table is empty or has no data
-            if (rows.length === 0 || (rows.length === 1 && rows[0].textContent.includes('Không có dữ liệu'))) {
-                alert('Không có dữ liệu trong bảng để vẽ biểu đồ.');
-                return;
-            }
-
-            // Extract data from table
-            const labels = [];
-            const temperatures = [];
-            const humidities = [];
-            const precipitations = [];
-            const nh3s = [];
-            const soilMoistures = [];
-
-            Array.from(rows).forEach(row => {
-                const cells = row.getElementsByTagName('td');
-                labels.push(cells[0].textContent); // Timestamp
-                temperatures.push(cells[1].textContent !== 'N/A' ? parseFloat(cells[1].textContent) : null);
-                humidities.push(cells[2].textContent !== 'N/A' ? parseFloat(cells[2].textContent) : null);
-                precipitations.push(cells[3].textContent !== 'N/A' ? parseFloat(cells[3].textContent) : null);
-                nh3s.push(cells[4].textContent !== 'N/A' ? parseFloat(cells[4].textContent) : null);
-                soilMoistures.push(cells[5].textContent !== 'N/A' ? parseFloat(cells[5].textContent) : null);
-            });
-
-            // Prepare datasets for chart
-            const datasets = [
-                {
-                    label: 'Nhiệt độ (°C)',
-                    data: temperatures,
-                    borderColor: 'rgba(230, 57, 70, 1)',
-                    backgroundColor: 'rgba(230, 57, 70, 0.2)',
-                    fill: chartType === 'line',
-                    tension: 0.4
-                },
-                {
-                    label: 'Độ ẩm (%)',
-                    data: humidities,
-                    borderColor: 'rgba(29, 132, 198, 1)',
-                    backgroundColor: 'rgba(29, 132, 198, 0.2)',
-                    fill: chartType === 'line',
-                    tension: 0.4
-                },
-                {
-                    label: 'Lượng mưa (mm)',
-                    data: precipitations,
-                    borderColor: 'rgba(9, 132, 227, 1)',
-                    backgroundColor: 'rgba(9, 132, 227, 0.2)',
-                    fill: chartType === 'line',
-                    tension: 0.4
-                },
-                {
-                    label: 'Nồng độ NH3+ (ppm)',
-                    data: nh3s,
-                    borderColor: 'rgba(114, 9, 183, 1)',
-                    backgroundColor: 'rgba(114, 9, 183, 0.2)',
-                    fill: chartType === 'line',
-                    tension: 0.4
-                },
-                {
-                    label: 'Độ ẩm đất (%)',
-                    data: soilMoistures,
-                    borderColor: 'rgba(44, 160, 44, 1)',
-                    backgroundColor: 'rgba(44, 160, 44, 0.2)',
-                    fill: chartType === 'line',
-                    tension: 0.4
-                }
-            ];
-
-            // Destroy previous chart if exists
-            if (chartInstance) {
-                chartInstance.destroy();
-            }
-
-            // Create new chart
-            const ctx = document.getElementById('data-chart').getContext('2d');
-            chartInstance = new Chart(ctx, {
-                type: chartType,
-                data: {
-                    labels: labels,
-                    datasets: datasets
-                },
-                options: {
-                    responsive: true,
-                    scales: {
-                        x: {
-                            display: true,
-                            title: {
-                                display: true,
-                                text: 'Thời gian'
-                            }
-                        },
-                        y: {
-                            display: true,
-                            title: {
-                                display: true,
-                                text: 'Giá trị'
-                            }
+                            const forecastItem = `
+                                <div class="forecast-item">
+                                    <span class="time">${currentDay}</span>
+                                    <div class="weather-data">
+                                        <span class="temperature">${avgTemp.toFixed(1)}°C</span>
+                                        <span class="humidity">${avgHum.toFixed(0)}%</span>
+                                        <span class="sunshine">${sunshineIcon}</span>
+                                        <span class="rain">${rainIcon}</span>
+                                    </div>
+                                </div>
+                            `;
+                            forecastContainer.innerHTML += forecastItem;
+                            daysAdded++;
                         }
-                    },
-                    plugins: {
-                        legend: {
-                            display: true,
-                            position: 'top'
-                        },
-                        title: {
-                            display: true,
-                            text: fromDateStr && toDateStr ? `Biểu đồ dữ liệu từ ${fromDateStr} đến ${toDateStr}` : 'Biểu đồ dữ liệu gần đây'
-                        }
+                        // Reset cho ngày mới
+                        currentDay = forecastDay;
+                        dayTemps = [];
+                        dayHums = [];
+                        dayPrecs = [];
+                        dayStartTime = times[index];
                     }
+                    dayTemps.push(temperatures[index]);
+                    dayHums.push(humidities[index]);
+                    dayPrecs.push(precipitations[index]);
                 }
-            });
 
-            // Show chart container
-            document.getElementById('chart-container').classList.add('active');
+                // Xử lý ngày cuối cùng nếu có dữ liệu
+                if (dayTemps.length > 0 && daysAdded < numDays) {
+                    const avgTemp = dayTemps.reduce((sum, temp) => sum + temp, 0) / dayTemps.length;
+                    const avgHum = dayHums.reduce((sum, hum) => sum + hum, 0) / dayHums.length;
+                    const totalPrec = dayPrecs.reduce((sum, prec) => sum + prec, 0);
+
+                    let sunshineIcon = ''; // Bỏ icon nắng
+                    let rainIcon = totalPrec > 10 ? '🌧️'
+                        : totalPrec > 2 ? '🌦️'
+                        : totalPrec > 0 ? '💧'
+                        : avgTemp <= 25 ? '🌫️' : '☁️';
+
+                    const forecastItem = `
+                        <div class="forecast-item">
+                            <span class="time">${currentDay}</span>
+                            <div class="weather-data">
+                                <span class="temperature">${avgTemp.toFixed(1)}°C</span>
+                                <span class="humidity">${avgHum.toFixed(0)}%</span>
+                                <span class="sunshine">${sunshineIcon}</span>
+                                <span class="rain">${rainIcon}</span>
+                            </div>
+                        </div>
+                    `;
+                    forecastContainer.innerHTML += forecastItem;
+                }
+
+                if (forecastContainer.innerHTML === '') {
+                    forecastContainer.innerHTML = '<div>Không có dự báo cho khung giờ này</div>';
+                }
+            } else if (option === '384') {
+                // Summary daily forecast for 16 days
+                let currentDay = null;
+                let dayTemps = [];
+                let dayHums = [];
+                let dayPrecs = [];
+                let dayStartTime = null;
+                let daysAdded = 0;
+
+                for (let index = 0; index < times.length && daysAdded < 16; index++) {
+                    const forecastTime = new Date(times[index]);
+                    const forecastTimeMs = forecastTime.getTime();
+                    if (forecastTimeMs <= currentTime) continue; // Bỏ qua các khung giờ đã qua
+
+                    const forecastDay = forecastTime.toLocaleString('vi-VN', { day: 'numeric', month: 'numeric' });
+
+                    if (currentDay !== forecastDay) {
+                        if (dayTemps.length > 0) {
+                            // Xử lý ngày trước đó
+                            const avgTemp = dayTemps.reduce((sum, temp) => sum + temp, 0) / dayTemps.length;
+                            const avgHum = dayHums.reduce((sum, hum) => sum + hum, 0) / dayHums.length;
+                            const totalPrec = dayPrecs.reduce((sum, prec) => sum + prec, 0);
+
+                            let sunshineIcon = ''; // Bỏ icon nắng
+                            let rainIcon = totalPrec > 10 ? '🌧️'
+                                : totalPrec > 2 ? '🌦️'
+                                : totalPrec > 0 ? '💧'
+                                : avgTemp <= 25 ? '🌫️' : '☁️';
+
+                            const forecastItem = `
+                                <div class="forecast-item">
+                                    <span class="time">${currentDay}</span>
+                                    <div class="weather-data">
+                                        <span class="temperature">${avgTemp.toFixed(1)}°C</span>
+                                        <span class="humidity">${avgHum.toFixed(0)}%</span>
+                                        <span class="sunshine">${sunshineIcon}</span>
+                                        <span class="rain">${rainIcon}</span>
+                                    </div>
+                                </div>
+                            `;
+                            forecastContainer.innerHTML += forecastItem;
+                            daysAdded++;
+                        }
+                        // Reset cho ngày mới
+                        currentDay = forecastDay;
+                        dayTemps = [];
+                        dayHums = [];
+                        dayPrecs = [];
+                        dayStartTime = times[index];
+                    }
+                    dayTemps.push(temperatures[index]);
+                    dayHums.push(humidities[index]);
+                    dayPrecs.push(precipitations[index]);
+                }
+
+                // Xử lý ngày cuối cùng nếu có dữ liệu
+                if (dayTemps.length > 0 && daysAdded < 16) {
+                    const avgTemp = dayTemps.reduce((sum, temp) => sum + temp, 0) / dayTemps.length;
+                    const avgHum = dayHums.reduce((sum, hum) => sum + hum, 0) / dayHums.length;
+                    const totalPrec = dayPrecs.reduce((sum, prec) => sum + prec, 0);
+
+                    let sunshineIcon = ''; // Bỏ icon nắng
+                    let rainIcon = totalPrec > 10 ? '🌧️'
+                        : totalPrec > 2 ? '🌦️'
+                        : totalPrec > 0 ? '💧'
+                        : avgTemp <= 25 ? '🌫️' : '☁️';
+
+                    const forecastItem = `
+                        <div class="forecast-item">
+                            <span class="time">${currentDay}</span>
+                            <div class="weather-data">
+                                <span class="temperature">${avgTemp.toFixed(1)}°C</span>
+                                <span class="humidity">${avgHum.toFixed(0)}%</span>
+                                <span class="sunshine">${sunshineIcon}</span>
+                                <span class="rain">${rainIcon}</span>
+                            </div>
+                        </div>
+                    `;
+                    forecastContainer.innerHTML += forecastItem;
+                }
+
+                if (forecastContainer.innerHTML === '') {
+                    forecastContainer.innerHTML = '<div>Không có dự báo cho khung giờ này</div>';
+                }
+            }
+        } else {
+            console.warn('No weather data available from Open-Meteo');
+            document.getElementById('precipitation').textContent = 'N/A';
+            document.getElementById('weather-forecast').innerHTML = '<div>Không có dự báo thời tiết</div>';
         }
-
-        // Function to clean old data from Firebase (older than 2 months)
-        function cleanOldData() {
-            const twoMonthsAgo = new Date();
-            twoMonthsAgo.setDate(twoMonthsAgo.getDate() - 60);
-            historyRef.orderByChild('timestamp').endAt(twoMonthsAgo.toISOString()).once('value', (snapshot) => {
-                snapshot.forEach(child => {
-                    child.ref.remove();
-                });
-            });
-        }
-
+    } catch (error) {
+        console.error('Error fetching weather data:', error.message);
+        document.getElementById('precipitation').textContent = 'Lỗi';
+        document.getElementById('weather-forecast').innerHTML = '<div>Lỗi tải dự báo</div>';
+    }
+}
         // Function to update forecast based on selected option
         function updateForecastHours() {
             const option = document.getElementById('forecast-hours').value;
             fetchWeatherData(option);
         }
 
-        // Initial fetch with default 3 hours and update every 5 minutes
+        // Initial fetch with default 3 hours
         fetchWeatherData('3');
-        setInterval(() => fetchWeatherData(document.getElementById('forecast-hours').value), 1 *60* 1000); // Update every 5 minutes
+        setInterval(() => fetchWeatherData(document.getElementById('forecast-hours').value), 10 * 60 * 1000);
 
         // Update Calendar with Current Date and Time
         function updateCalendar() {
@@ -1211,18 +953,6 @@
         // Initial update and refresh every second
         updateCalendar();
         setInterval(updateCalendar, 1000);
-
-        // Load historical data from Firebase on page load, limit to 100 records
-        historyRef.limitToLast(100).on('value', (snapshot) => {
-            const data = snapshot.val();
-            if (data) {
-                historicalData = Object.values(data).sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-                updateDataTable();
-            }
-        });
-
-        // Clean old data every 24 hours
-        setInterval(cleanOldData, 24 * 60 * 60 * 1000);
     </script>
 </body>
 </html>
