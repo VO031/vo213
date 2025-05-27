@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hệ thống dự đoán sản lượng và giống phù hợp</title>
+    <style>
+        /* Biến gốc cho chủ đề và tái sử dụng */
+        :root {
+            --border-radius: 1.2rem;
+            --transition-duration: 0.3s;
+            --font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            --shadow-color: rgba(0, 0, 0, 0.12);
+            --glass-bg: rgba(255, 255, 255, 0.15);
+            --glass-blur: blur(12px);
+            --menu-width: 250px;
+            --menu-trigger-width: 20px;
+            --text-dark: #1a2632;
+            --box-bg: rgba(255, 255, 255, 0.85);
+        }
+
+        /* Chủ đề sáng (mặc định) */
+        :root {
+            --primary-gradient-start: #a8e6cf;
+            --primary-gradient-end: #dcedc8;
+            --menu-bg: rgba(255, 255, 255, 0.9);
+            --menu-hover-bg: rgba(230, 230, 230, 0.8);
+            --menu-text: #1a2632;
+        }
+
+        /* Hỗ trợ chủ đề tối */
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --primary-gradient-start: #2d6a4f;
+                --primary-gradient-end: #4a7043;
+                --menu-bg: rgba(40, menu-container: 0.9);
+                --menu-hover-bg: rgba(60, 80, 100, 0.8);
+                --menu-text: #e6ecef;
+                --text-dark: #e6ecef;
+                --box-bg: rgba(40, 54, 70, 0.9);
+            }
+        }
+
+        /* Reset và kiểu cơ bản */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        body {
+            font-family: var(--font-family);
+            min-height: 100vh;
+            background: linear-gradient(135deg, var(--primary-gradient-start), var(--primary-gradient-end));
+            padding: clamp(1.5rem, 5vw, 2.5rem);
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Kiểu cho menu thanh bên */
+        .menu-container {
+            position: fixed;
+            top: 0;
+            left: calc(-1 * var(--menu-width));
+            width: var(--menu-width);
+            height: 100%;
+            background: var(--menu-bg);
+            backdrop-filter: var(--glass-blur);
+            border-right: 2px solid rgba(255, 255, 255, 0.4);
+            box-shadow: 0 8px 20px var(--shadow-color);
+            transition: transform var(--transition-duration) ease;
+            z-index: 1000;
+        }
+
+        .menu-container:hover,
+        .menu-trigger:hover ~ .menu-container {
+            transform: translateX(var(--menu-width));
+        }
+
+        .menu-trigger {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: var(--menu-trigger-width);
+            height: 100%;
+            background: rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+            z-index: 1100;
+        }
+
+        .menu {
+            padding: 2rem 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .menu-item {
+            padding: 1rem;
+            color: var(--menu-text);
+            font-size: clamp(1rem, 2vw, 1.2rem);
+            font-weight: 500;
+            border-radius: 0.6rem;
+            transition: background var(--transition-duration) ease;
+            cursor: pointer;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .menu-item:hover {
+            background: var(--menu-hover-bg);
+        }
+
+        .menu-item i {
+            font-size: 1.2rem;
+        }
+
+        /* Kiểu cho phần đề xuất cây trồng */
+        .recommendation-container {
+            margin-top: 2rem;
+            margin-left: calc(var(--menu-trigger-width) + 1rem);
+            max-width: 600px;
+            background: var(--box-bg);
+            padding: 2rem;
+            border-radius: var(--border-radius);
+            box-shadow: 0 8px 25px var(--shadow-color);
+        }
+
+        .recommendation-container h2 {
+            color: var(--text-dark);
+            font-size: clamp(1.5rem, 3vw, 2rem);
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .recommendation-container p {
+            color: var(--text-dark);
+            font-size: clamp(1rem, 2vw, 1.2rem);
+            margin-bottom: 0.5rem;
+        }
+
+        .warning {
+            color: #e63946;
+            font-weight: 500;
+        }
+
+        /* Tăng khả năng tiếp cận */
+        @media (prefers-reduced-motion: reduce) {
+            .menu-container {
+                transition: none;
+            }
+        }
+
+        /* Thiết kế responsive */
+        @media (max-width: 1024px) {
+            .menu-container {
+                width: 100%;
+                left: calc(-100%);
+            }
+
+            .menu-container:hover,
+            .menu-trigger:hover ~ .menu-container {
+                transform: translateX(100%);
+            }
+
+            .menu-trigger {
+                width: 15px;
+            }
+
+            .recommendation-container {
+                margin-left: 0;
+                width: 100%;
+            }
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+</head>
+<body>
+    <!-- Nút kích hoạt và Menu thanh bên -->
+    <div class="menu-trigger"></div>
+    <div class="menu-container">
+        <div class="menu">
+            <a href="index.html" class="menu-item"><i class="fas fa-home"></i> Trang chủ</a>
+            <a href="dataanalist.html" class="menu-item"><i class="fas fa-chart-line"></i> Phân tích dữ liệu</a>
+            <a href="#" class="menu-item"><i class="fas fa-seedling"></i> Đề xuất giống</a>
+            <a href="#" class="menu-item"><i class="fas fa-gamepad"></i> Điều khiển</a>
+            <a href="#" class="menu-item"><i class="fas fa-comment"></i> Chat Box</a>
+            <a href="#" class="menu-item"><i class="fas fa-cog"></i> Cài đặt</a>
+            <a href="#" class="menu-item"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a>
+        </div>
+    </div>
+
+    <!-- Phần hiển thị đề xuất cây trồng -->
+    <div class="recommendation-container">
+        <h2>Đề xuất giống cây trồng</h2>
+        <div id="recommendation-content"></div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+    <script>
+        // Cấu hình Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyBNAFhMZtU3ubH5R6ZaYZ1rmt-4PLONfj4",
+            authDomain: "myweb-34625.firebaseapp.com",
+            databaseURL: "https://myweb-34625-default-rtdb.firebaseio.com",
+            projectId: "myweb-34625",
+            storageBucket: "myweb-34625.firebasestorage.app",
+            messagingSenderId: "140146495176",
+            appId: "1:140146495176:web:47027bcb3f5750a0b89ffd",
+            measurementId: "G-7GNXDSY3F2"
+        };
+
+        // Khởi tạo Firebase
+        firebase.initializeApp(firebaseConfig);
+
+        // Tham chiếu đến Firebase Realtime Database
+        const database = firebase.database();
+        const dataRef = database.ref('data');
+
+        // Hàm đề xuất giống cây trồng
+        function recommendCrop(data) {
+            const temperature = data.temperature || 0;
+            const humidity = data.humidity || 0;
+            const soilMoisture = data.soil_moisture || 0;
+            const nh3 = data.nh3 || 0;
+            const precipitation = data.precipitation || 0;
+
+            let recommendation = '';
+            let warnings = '';
+
+            // Kiểm tra nhiệt độ (giả định 60°C là lỗi, điều chỉnh về 25-30°C nếu bất thường)
+            let adjustedTemperature = temperature;
+            if (temperature > 50) {
+                adjustedTemperature = 27; // Giả định nhiệt độ thực tế là 27°C
+                warnings += '<p class="warning">Cảnh báo: Nhiệt độ ' + temperature + '°C quá cao, có thể do lỗi cảm biến. Giả định nhiệt độ là 27°C để đề xuất.</p>';
+            }
+
+            // Kiểm tra nồng độ NH3
+            if (nh3 > 5) {
+                warnings += '<p class="warning">Cảnh báo: Nồng độ NH3 (' + nh3 + ' ppm) quá cao, có thể gây hại cho cây. Cần giảm NH3 bằng cách tăng thông gió hoặc giảm phân bón amoniac.</p>';
+            }
+
+            // Đề xuất cây trồng dựa trên điều kiện
+            if (adjustedTemperature >= 20 && adjustedTemperature <= 35 && humidity >= 70 && soilMoisture >= 40) {
+                recommendation += '<p><strong>Cây lúa nước (Oryza sativa)</strong>: Phù hợp với độ ẩm cao (không khí: ' + humidity + '%, đất: ' + soilMoisture + '%). Nhiệt độ ' + adjustedTemperature + '°C là lý tưởng.</p>';
+                recommendation += '<p><strong>Cây khoai môn (Colocasia esculenta)</strong>: Thích hợp với độ ẩm cao và nhiệt độ hiện tại.</p>';
+                if (soilMoisture >= 50) {
+                    recommendation += '<p><strong>Cây súng (Nymphaea spp.)</strong>: Phù hợp nếu có đất ngập nước, với độ ẩm không khí và đất hiện tại.</p>';
+                }
+            } else {
+                recommendation += '<p>Điều kiện hiện tại không lý tưởng cho cây trồng phổ biến. Cần điều chỉnh nhiệt độ, độ ẩm hoặc cải thiện đất.</p>';
+            }
+
+            // Khuyến nghị tưới tiêu
+            if (precipitation === 0) {
+                recommendation += '<p><strong>Khuyến nghị</strong>: Không có mưa, cần tưới tiêu nhẹ để duy trì độ ẩm đất, nhưng tránh ngập úng do độ ẩm không khí đã cao.</p>';
+            }
+
+            // Hiển thị kết quả
+            document.getElementById('recommendation-content').innerHTML = warnings + recommendation;
+        }
+
+        // Lắng nghe cập nhật từ Firebase
+        dataRef.on('value', (snapshot) => {
+            const data = snapshot.val();
+            if (data) {
+                console.log('Dữ liệu Firebase:', data);
+                recommendCrop(data);
+            } else {
+                console.warn('Không có dữ liệu từ Firebase tại /data');
+                document.getElementById('recommendation-content').innerHTML = '<p>Không có dữ liệu để đề xuất cây trồng.</p>';
+            }
+        }, (error) => {
+            console.error('Lỗi khi lấy dữ liệu Firebase:', error.message);
+            document.getElementById('recommendation-content').innerHTML = '<p>Lỗi khi tải dữ liệu để đề xuất cây trồng.</p>';
+        });
+    </script>
+</body>
+</html>
