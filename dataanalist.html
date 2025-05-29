@@ -1,824 +1,582 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Phân tích dữ liệu</title>
-    <style>
-        /* Root Variables for Theming and Reusability */
-        :root {
-            --border-radius: 1.2rem;
-            --transition-duration: 0.3s;
-            --max-container-width: 1280px;
-            --font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            --shadow-color: rgba(0, 0, 0, 0.12);
-            --glass-bg: rgba(255, 255, 255, 0.15);
-            --glass-blur: blur(12px);
-            --menu-width: 250px;
-            --menu-trigger-width: 20px;
-        }
-
-        /* Light Mode Default */
-        :root {
-            --primary-gradient-start: #a8e6cf;
-            --primary-gradient-end: #dcedc8;
-            --text-dark: #1a2632;
-            --text-light: #f5f6f5;
-            --box-bg: rgba(255, 255, 255, 0.85);
-            --menu-bg: rgba(255, 255, 255, 0.9);
-            --menu-hover-bg: rgba(230, 230, 230, 0.8);
-            --menu-text: #1a2632;
-        }
-
-        /* Dark Mode Support */
-        @media (prefers-color-scheme: dark) {
-            :root {
-                --primary-gradient-start: #2d6a4f;
-                --primary-gradient-end: #4a7043;
-                --text-dark: #e6ecef;
-                --text-light: #2c3e50;
-                --box-bg: rgba(40, 54, 70, 0.9);
-                --glass-bg: rgba(40, 54, 70, 0.25);
-                --menu-bg: rgba(40, 54, 70, 0.9);
-                --menu-hover-bg: rgba(60, 80, 100, 0.8);
-                --menu-text: #e6ecef;
-            }
-        }
-
-        /* Reset and Base Styles */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
-        }
-
-        body {
-            font-family: var(--font-family);
-            min-height: 100vh;
-            background: linear-gradient(135deg, var(--primary-gradient-start), var(--primary-gradient-end));
-            padding: clamp(1.5rem, 5vw, 2.5rem);
-            overflow-x: hidden;
-            position: relative;
-        }
-
-        /* Menu Sidebar Styles */
-        .menu-container {
-            position: fixed;
-            top: 0;
-            left: calc(-1 * var(--menu-width));
-            width: var(--menu-width);
-            height: 100%;
-            background: var(--menu-bg);
-            backdrop-filter: var(--glass-blur);
-            border-right: 3px solid rgba(255, 255, 255, 0.5);
-            box-shadow: 0 10px 25px var(--shadow-color);
-            transition: transform var(--transition-duration) ease-in-out;
-            z-index: 1000;
-        }
-
-        .menu-container:hover,
-        .menu-trigger:hover ~ .menu-container {
-            transform: translateX(var(--menu-width));
-        }
-
-        .menu-trigger {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: var(--menu-trigger-width);
-            height: 100%;
-            background: rgba(0, 0, 0, 0.1);
-            cursor: pointer;
-            z-index: 1100;
-        }
-
-        .menu {
-            padding: 2rem 1rem;
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-        }
-
-        .menu-item {
-            padding: 1.2rem 1.5rem;
-            color: var(--menu-text);
-            font-size: clamp(1rem, 2vw, 1.2rem);
-            font-weight: 600;
-            border-radius: 0.8rem;
-            transition: all var(--transition-duration) ease;
-            cursor: pointer;
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            gap: 0.8rem;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .menu-item:hover {
-            background: var(--menu-hover-bg);
-            transform: translateX(5px);
-        }
-
-        .menu-item i {
-            font-size: 1.4rem;
-            transition: transform var(--transition-duration) ease;
-        }
-
-        .menu-item:hover i {
-            transform: scale(1.2);
-        }
-
-        /* Body Container */
-        .body-container {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 2rem;
-            max-width: var(--max-container-width);
-            margin: 0 auto;
-            align-items: flex-start;
-            margin-left: calc(var(--menu-trigger-width) + 1rem);
-        }
-
-        /* Title Styles */
-        .title {
-            color: #e91e63;
-            font-size: clamp(2.2rem, 6vw, 3.5rem);
-            font-weight: 800;
-            text-align: center;
-            margin: 2.5rem 0;
-            padding: 1.5rem 3rem;
-            background: linear-gradient(135deg, var(--glass-bg), rgba(255, 255, 255, 0.4));
-            backdrop-filter: var(--glass-blur);
-            border-radius: var(--border-radius);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
-            border: 2px solid rgba(255, 255, 255, 0.5);
-            animation: fadeInDown 0.8s ease-out, glow 2s ease-in-out infinite alternate;
-            text-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
-            letter-spacing: 1.5px;
-        }
-
-        /* Data Table Styles */
-        .data-table-container {
-            width: 100%;
-            background: var(--box-bg);
-            backdrop-filter: var(--glass-blur);
-            border-radius: var(--border-radius);
-            padding: 2rem;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            animation: fadeInUp 0.8s ease-out;
-        }
-
-        .data-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: clamp(1rem, 2vw, 1.2rem);
-        }
-
-        .data-table th,
-        .data-table td {
-            padding: 1.2rem 1.5rem;
-            text-align: left;
-            border-bottom: 2px solid rgba(255, 255, 255, 0.2);
-        }
-
-        .data-table th {
-            background: linear-gradient(135deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.1));
-            color: var(--text-dark);
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            font-size: clamp(0.9rem, 1.8vw, 1.1rem);
-        }
-
-        .data-table td {
-            color: var(--text-dark);
-            font-weight: 500;
-            transition: all var(--transition-duration) ease;
-        }
-
-        .data-table tr:hover td {
-            background: rgba(255, 255, 255, 0.1);
-            transform: scale(1.02);
-        }
-
-        .data-value {
-            font-weight: 700;
-            color: #2d6a4f;
-        }
-
-        .data-unit {
-            font-size: 0.9em;
-            color: rgba(26, 38, 50, 0.7);
-            margin-left: 0.3rem;
-        }
-
-        /* Status Indicator */
-        .status-indicator {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 1rem;
-            margin-bottom: 1.5rem;
-            padding: 1rem;
-            background: linear-gradient(135deg, rgba(45, 106, 79, 0.3), rgba(168, 230, 207, 0.3));
-            border-radius: 1rem;
-            border: 2px solid rgba(45, 106, 79, 0.4);
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-        }
-
-        .status-dot {
-            width: 14px;
-            height: 14px;
-            border-radius: 50%;
-            background: #4CAF50;
-            border: 2px solid rgba(255, 255, 255, 0.5);
-            animation: pulse 1.5s infinite;
-        }
-
-        .status-text {
-            color: var(--text-dark);
-            font-weight: 600;
-            font-size: clamp(0.9rem, 1.8vw, 1rem);
-        }
-
-        .last-update {
-            color: rgba(26, 38, 50, 0.6);
-            font-size: clamp(0.8rem, 1.6vw, 0.9rem);
-        }
-
-        /* Control Buttons */
-        .control-buttons {
-            display: flex;
-            gap: 1rem;
-            margin-bottom: 1.5rem;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-
-        .filter-btn, .export-btn {
-            padding: 0.8rem 1.5rem;
-            border: none;
-            border-radius: 0.8rem;
-            font-weight: 600;
-            font-size: clamp(0.9rem, 1.8vw, 1rem);
-            cursor: pointer;
-            transition: all var(--transition-duration) ease;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-        }
-
-        .filter-btn {
-            background: linear-gradient(135deg, #4CAF50, #2e7d32);
-            color: white;
-        }
-
-        .filter-btn:hover {
-            background: linear-gradient(135deg, #2e7d32, #1b5e20);
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
-        }
-
-        .export-btn {
-            background: linear-gradient(135deg, #2196F3, #1976D2);
-            color: white;
-        }
-
-        .export-btn:hover {
-            background: linear-gradient(135deg, #1976D2, #1565C0);
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
-        }
-
-        /* Historical Data Styles */
-        .table-info {
-            text-align: center;
-            margin-bottom: 1.5rem;
-            padding: 1rem;
-            background: linear-gradient(135deg, rgba(76, 175, 80, 0.1), rgba(168, 230, 207, 0.1));
-            border-radius: 0.8rem;
-            border: 1px solid rgba(76, 175, 80, 0.2);
-        }
-
-        .table-info h3 {
-            color: var(--text-dark);
-            margin-bottom: 0.5rem;
-            font-size: clamp(1.2rem, 2.5vw, 1.5rem);
-        }
-
-        .table-info p {
-            color: rgba(26, 38, 50, 0.7);
-            font-size: clamp(0.9rem, 1.8vw, 1rem);
-        }
-
-        .table-wrapper {
-            max-height: 600px;
-            overflow-y: auto;
-            overflow-x: auto;
-            position: relative;
-            border-radius: var(--border-radius);
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-        }
-
-        .history-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: clamp(0.85rem, 1.6vw, 0.95rem);
-            background: var(--box-bg);
-            table-layout: fixed;
-        }
-
-        .history-table thead th:nth-child(2) {
-            width: 200px;
-        }
-
-        .history-table tbody {
-            display: block;
-            max-height: 550px;
-            overflow-y: auto;
-        }
-
-        .history-table thead, .history-table tbody tr {
-            display: table;
-            width: 100%;
-            table-layout: fixed;
-        }
-
-        .history-table th, .history-table td {
-            min-width: 100px;
-            max-width: 150px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-
-        .history-table th {
-            background: linear-gradient(135deg, #4CAF50, #2e7d32);
-            color: var(--text-light);
-            padding: 1rem 0.8rem;
-            text-align: center;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            font-size: clamp(0.8rem, 1.5vw, 0.9rem);
-            border-right: 1px solid rgba(255, 255, 255, 0.2);
-            position: sticky;
-            top: 0;
-            z-index: 10;
-        }
-
-        .history-table th:last-child {
-            border-right: none;
-        }
-
-        .history-table td {
-            padding: 0.8rem;
-            text-align: center;
-            color: var(--text-dark);
-            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-            border-right: 1px solid rgba(0, 0, 0, 0.05);
-            transition: background var(--transition-duration) ease;
-        }
-
-        .history-table td:last-child {
-            border-right: none;
-        }
-
-        .history-table tbody tr:hover {
-            background: rgba(76, 175, 80, 0.15);
-            transform: scale(1.01);
-        }
-
-        .history-table tbody tr:nth-child(even) {
-            background: rgba(255, 255, 255, 0.05);
-        }
-
-        .history-table tbody tr:nth-child(odd) {
-            background: rgba(255, 255, 255, 0.1);
-        }
-
-        /* Time column styling - Updated to show full timestamp */
-        .time-cell {
-            font-family: 'Courier New', monospace;
-            font-weight: 500;
-            color: #1976D2;
-            white-space: nowrap;
-            min-width: 200px;
-            max-width: none;
-            overflow: visible;
-            font-size: x-small;
-        }
-
-        /* Data value styling */
-        .data-cell {
-            font-weight: 600;
-            color: #2d6a4f;
-        }
-
-        /* Date Filter Styles */
-        .date-filter-container {
-            margin-bottom: 1.5rem;
-            padding: 1.5rem;
-            background: linear-gradient(135deg, rgba(33, 150, 243, 0.15), rgba(30, 136, 229, 0.1));
-            border-radius: var(--border-radius);
-            border: 2px solid rgba(33, 150, 243, 0.25);
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-            animation: slideDown 0.5s ease-out;
-        }
-
-        .date-filter {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 1rem;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .date-input-group {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-            min-width: 220px;
-            position: relative;
-        }
-
-        .date-input-group label {
-            color: var(--text-dark);
-            font-weight: 600;
-            font-size: clamp(0.9rem, 1.8vw, 1rem);
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .date-input {
-            padding: 0.8rem 1rem;
-            border: 2px solid rgba(33, 150, 243, 0.4);
-            border-radius: 0.6rem;
-            font-size: clamp(0.9rem, 1.8vw, 1rem);
-            background: var(--box-bg);
-            color: var(--text-dark);
-            transition: all var(--transition-duration) ease;
-            appearance: none;
-        }
-
-        .date-input:focus {
-            outline: none;
-            border-color: #2196F3;
-            box-shadow: 0 0 10px rgba(33, 150, 243, 0.3);
-            transform: scale(1.02);
-        }
-
-        .apply-filter-btn, .reset-filter-btn {
-            padding: 0.8rem 1.5rem;
-            border: none;
-            border-radius: 0.6rem;
-            font-weight: 600;
-            font-size: clamp(0.9rem, 1.8vw, 1rem);
-            cursor: pointer;
-            transition: all var(--transition-duration) ease;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
-        }
-
-        .apply-filter-btn {
-            background: linear-gradient(135deg, #4CAF50, #2e7d32);
-        }
-
-        .apply-filter-btn:hover {
-            background: linear-gradient(135deg, #2e7d32, #1b5e20);
-            transform: translateY(-2px);
-        }
-
-        .reset-filter-btn {
-            background: linear-gradient(135deg, #FF9800, #F57C00);
-        }
-
-        .reset-filter-btn:hover {
-            background: linear-gradient(135deg, #F57C00, #E65100);
-            transform: translateY(-2px);
-        }
-
-        .filter-info {
-            text-align: center;
-            margin-top: 1rem;
-            padding: 0.8rem;
-            background: rgba(255, 255, 255, 0.3);
-            border-radius: 0.6rem;
-            color: var(--text-dark);
-            font-size: clamp(0.9rem, 1.8vw, 1rem);
-            border: 1px solid rgba(33, 150, 243, 0.2);
-        }
-
-        /* Custom Scrollbar */
-        .table-wrapper::-webkit-scrollbar {
-            width: 10px;
-            height: 10px;
-        }
-
-        .table-wrapper::-webkit-scrollbar-track {
-            background: rgba(0, 0, 0, 0.1);
-            border-radius: 10px;
-        }
-
-        .table-wrapper::-webkit-scrollbar-thumb {
-            background: var(--primary-gradient-start);
-            border-radius: 10px;
-        }
-
-        .table-wrapper::-webkit-scrollbar-thumb:hover {
-            background: var(--primary-gradient-end);
-        }
-
-        /* Animation Keyframes */
-        @keyframes slideDown {
-            from { opacity: 0; transform: translateY(-20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        @keyframes glow {
-            from { box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2), 0 0 20px rgba(255, 255, 255, 0.2); }
-            to { box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3), 0 0 30px rgba(255, 255, 255, 0.4); }
-        }
-
-        @keyframes pulse {
-            0% { opacity: 1; }
-            50% { opacity: 0.5; }
-            100% { opacity: 1; }
-        }
-
-        @keyframes fadeInDown {
-            from { opacity: 0; transform: translateY(-1.5rem); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(1.5rem); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        @keyframes flashUpdate {
-            0% { background: rgba(76, 175, 80, 0.5); }
-            50% { background: rgba(76, 175, 80, 0.2); }
-            100% { background: transparent; }
-        }
-
-        @keyframes fadeNewRecord {
-            from { background: rgba(33, 150, 243, 0.4); }
-            to { background: transparent; }
-        }
-
-        .flash-update {
-            animation: flashUpdate 0.5s ease;
-        }
-
-        .new-record {
-            background: rgba(33, 150, 243, 0.4);
-            animation: fadeNewRecord 1.5s ease forwards;
-        }
-
-        /* Accessibility Enhancements */
-        @media (prefers-reduced-motion: reduce) {
-            .title, .menu-container, .data-table-container {
-                animation: none;
-                transition: none;
-            }
-            .status-dot, .flash-update, .new-record {
-                animation: none;
-                transition: none;
-            }
-        }
-
-        /* Responsive Design */
-        @media (max-width: 1024px) {
-            .body-container {
-                flex-direction: column;
-                align-items: center;
-                margin-left: 0;
-            }
-
-            .menu-container {
-                width: 100%;
-                left: calc(-100%);
-            }
-
-            .menu-container:hover,
-            .menu-trigger:hover ~ .menu-container {
-                transform: translateX(100%);
-            }
-
-            .menu-trigger {
-                width: 15px;
-            }
-        }
-
-        @media (max-width: 768px) {
-            .title {
-                font-size: clamp(1.5rem, 4vw, 1.9rem);
-                padding: 1rem 1.5rem;
-            }
-
-            .data-table th,
-            .data-table td {
-                padding: 1rem;
-            }
-
-            .history-table thead th:nth-child(2) {
-                width: 180px;
-            }
-
-            .time-cell {
-                min-width: 180px;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .title {
-                font-size: clamp(1.3rem, 3.5vw, 1.6rem);
-            }
-
-            body {
-                padding: clamp(1rem, 3vw, 1.5rem);
-            }
-
-            .menu-item {
-                font-size: clamp(0.9rem, 1.8vw, 1rem);
-            }
-
-            .data-table-container {
-                padding: 1.5rem;
-            }
-
-            .data-table th,
-            .data-table td {
-                padding: 0.8rem 0.5rem;
-            }
-
-            .date-input-group {
-                min-width: 180px;
-            }
-
-            .history-table thead th:nth-child(2) {
-                width: 150px;
-            }
-
-            .time-cell {
-                min-width: 150px;
-            }
-        }
-    </style>
+    <title>Menu</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.23.0/firebase-app-compat.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.23.0/firebase-database-compat.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Thêm Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <!-- Thêm SheetJS và FileSaver.js CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+   <style>
+  :root {
+    --border-radius: 1.5rem;
+    --transition-duration: 0.3s;
+    --font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --shadow-color: rgba(0, 0, 0, 0.15);
+    --glass-bg: rgba(255, 255, 255, 0.2);
+    --glass-blur: blur(15px);
+    --menu-width: 320px;
+    --menu-trigger-width: 40px; /* Updated from 60px */
+    --primary-gradient-start: #6ab04c;
+    --primary-gradient-end: #badc58;
+    --text-dark: #1a2632;
+    --menu-bg: rgba(255, 255, 255, 0.95);
+    --menu-hover-bg: rgba(240, 240, 240, 0.9);
+    --menu-text: #1a2632;
+    --table-bg: rgba(255, 255, 255, 0.98);
+    --table-border: rgba(200, 200, 200, 0.3);
+    --table-header-bg: linear-gradient(135deg, var(--primary-gradient-start), var(--primary-gradient-end));
+    --table-row-hover: rgba(106, 176, 76, 0.15);
+    --table-row-even: rgba(245, 245, 245, 0.2);
+    --table-shadow: 0 12px 30px rgba(0, 0, 0, 0.1);
+    --chart-bg: rgba(255, 255, 255, 0.98);
+    --chart-shadow: 0 12px 30px rgba(0, 0, 0, 0.1);
+    --button-gradient: linear-gradient(135deg, var(--primary-gradient-start), var(--primary-gradient-end));
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --primary-gradient-start: #2d6a4f;
+        --primary-gradient-end: #4a7043;
+        --text-dark: #e6ecef;
+        --menu-bg: rgba(40, 54, 70, 0.95);
+        --menu-hover-bg: rgba(60, 80, 100, 0.9);
+        --menu-text: #e6ecef;
+        --table-bg: rgba(40, 54, 70, 0.98);
+        --table-border: rgba(120, 120, 120, 0.3);
+        --table-header-bg: linear-gradient(135deg, var(--primary-gradient-start), var(--primary-gradient-end));
+        --table-row-hover: rgba(74, 112, 67, 0.25);
+        --table-row-even: rgba(60, 80, 100, 0.3);
+        --table-shadow: 0 12px 30px rgba(0, 0, 0, 0.3);
+        --chart-bg: rgba(40, 54, 70, 0.98);
+        --chart-shadow: 0 12px 30px rgba(0, 0, 0, 0.3);
+        --button-gradient: linear-gradient(135deg, var(--primary-gradient-start), var(--primary-gradient-end));
+    }
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+    font-family: var(--font-family);
+    min-height: 100vh;
+    background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
+    padding: clamp(3rem, 8vw, 5rem);
+    overflow-x: hidden;
+    position: relative;
+    background-image: url(img/nentrang.jpg);
+}
+
+.menu-container {
+    position: fixed;
+    top: 0;
+    left: calc(-1 * var(--menu-width));
+    width: var(--menu-width);
+    height: 100%;
+    background: var(--menu-bg);
+    backdrop-filter: var(--glass-blur);
+    border-right: 2px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 0 10px 25px var(--shadow-color);
+    transition: transform var(--transition-duration) ease-in-out;
+    z-index: 1000;
+    overflow-y: auto;
+}
+
+.menu-container:hover,
+.menu-trigger:hover ~ .menu-container {
+    transform: translateX(var(--menu-width));
+}
+
+.menu-trigger {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: var(--menu-trigger-width); /* Updated to use variable */
+    height: 100%;
+    background: var(--button-gradient);
+    cursor: pointer;
+    z-index: 1100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background var(--transition-duration) ease;
+}
+
+.menu-trigger::before {
+    content: '\f0c9';
+    font-family: 'Font Awesome 5 Free';
+    font-weight: 900;
+    color: var(--menu-text);
+    font-size: 1.5rem; /* Reduced from 2rem */
+    opacity: 0.8;
+    transition: opacity var(--transition-duration) ease;
+}
+
+.menu-trigger:hover::before {
+    opacity: 1;
+}
+
+.menu {
+    padding: 3rem 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.menu-item {
+    padding: 1rem 1.5rem;
+    color: var(--menu-text);
+    font-size: clamp(1.1rem, 2vw, 1.3rem);
+    font-weight: 500;
+    border-radius: 1.2rem;
+    transition: all var(--transition-duration) ease;
+    cursor: pointer;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.menu-item:hover {
+    background: var(--menu-hover-bg);
+    transform: translateX(10px);
+}
+
+.menu-item i {
+    font-size: 1.6rem;
+    color: var(--primary-gradient-start);
+}
+
+.data-table-container {
+    margin-top: 5rem;
+    padding: 4rem;
+    background: var(--table-bg);
+    border-radius: var(--border-radius);
+    box-shadow: var(--table-shadow);
+    max-width: 1600px;
+    margin-left: auto;
+    margin-right: auto;
+    overflow-x: auto;
+    border: 1px solid var(--table-border);
+    position: relative;
+    transition: transform var(--transition-duration) ease;
+}
+
+.data-table-container:hover {
+    transform: scale(1.005);
+}
+
+.data-table-container h2 {
+    font-size: clamp(2.2rem, 4vw, 2.8rem);
+    margin-bottom: 2.5rem;
+    color: var(--menu-text);
+    font-weight: 600;
+    text-align: center;
+    letter-spacing: 0.03em;
+    text-shadow: 0 2px 4px var(--shadow-color);
+}
+
+.filter-form {
+    margin-bottom: 2.5rem;
+    display: flex;
+    gap: 2rem;
+    align-items: center;
+    flex-wrap: wrap;
+    justify-content: center;
+    background: var(--glass-bg);
+    padding: 1rem;
+    border-radius: 0.7rem;
+    backdrop-filter: var(--glass-blur);
+    box-shadow: 0 4px 10px var(--shadow-color);
+}
+
+.filter-form label {
+    color: var(--menu-text);
+    font-weight: 500;
+    font-size: 1.3rem;
+}
+
+.filter-form input[type="date"] {
+    padding: 1rem;
+    border: 1px solid var(--table-border);
+    border-radius: 0.7rem;
+    background: var(--menu-bg);
+    color: var(--menu-text);
+    font-family: var(--font-family);
+    font-size: 1.2rem;
+    transition: border-color var(--transition-duration) ease, transform var(--transition-duration) ease;
+    width: 240px;
+}
+
+.filter-form input[type="date"]:focus {
+    outline: none;
+    border-color: var(--primary-gradient-start);
+    box-shadow: 0 0 10px rgba(106, 176, 76, 0.3);
+    transform: scale(1.02);
+}
+
+.filter-form button {
+    padding: 1rem 2.5rem;
+    background: var(--button-gradient);
+    color: var(--menu-text);
+    border: none;
+    border-radius: 0.7rem;
+    cursor: pointer;
+    font-weight: 500;
+    font-size: 1.2rem;
+    transition: all var(--transition-duration) ease;
+    box-shadow: 0 4px 10px var(--shadow-color);
+}
+
+.filter-form button:hover {
+    background: var(--menu-hover-bg);
+    transform: translateY(-4px);
+    box-shadow: 0 8px 15px var(--shadow-color);
+}
+
+.data-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: clamp(1.1rem, 2vw, 1.3rem);
+    border-radius: 1rem;
+    overflow: hidden;
+    background: var(--table-bg);
+    box-shadow: var(--table-shadow);
+    transition: all var(--transition-duration) ease;
+}
+
+.data-table th,
+.data-table td {
+    padding: 1.6rem;
+    text-align: left;
+    border-bottom: 1px solid var(--table-border);
+    color: var(--menu-text);
+    transition: background var(--transition-duration) ease, transform var(--transition-duration) ease;
+}
+
+.data-table th {
+    font-weight: 700;
+    background: var(--table-header-bg);
+    color: #ffffff;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    border-right: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 1.8rem;
+}
+
+.data-table th:last-child {
+    border-right: none;
+}
+
+.data-table td {
+    border-right: 1px solid var(--table-border);
+    transition: transform 0.2s ease;
+}
+
+.data-table td:last-child {
+    border-right: none;
+}
+
+.data-table tr:nth-child(even) {
+    background: var(--table-row-even);
+}
+
+.data-table tr:hover {
+    background: var(--table-row-hover);
+    transform: scale(1.01);
+}
+
+.data-table tr:hover td {
+    transform: scale(1.01);
+}
+
+.data-table tr:last-child td {
+    border-bottom: none;
+}
+
+.data-table tr {
+    transition: transform var(--transition-duration) ease;
+}
+
+#chart-container {
+    margin-top: 5rem;
+    max-width: 1600px;
+    margin-left: auto;
+    margin-right: auto;
+    padding: 4.5rem;
+    background: var(--chart-bg);
+    border-radius: var(--border-radius);
+    box-shadow: var(--chart-shadow);
+    border: 1px solid var(--table-border);
+    transition: transform var(--transition-duration) ease;
+    position: relative;
+    display: none;
+}
+
+#chart-container:hover {
+    transform: scale(1.005);
+}
+
+#data-chart {
+    max-height: 650px;
+    border-radius: 1rem;
+    background: var(--chart-bg);
+    box-shadow: inset 0 4px 10px rgba(0, 0, 0, 0.05);
+    transition: all var(--transition-duration) ease;
+}
+
+#back-to-table {
+    margin-bottom: 2.5rem;
+    padding: 1rem 2.5rem;
+    background: var(--button-gradient);
+    color: var(--menu-text);
+    border: none;
+    border-radius: 0.7rem;
+    cursor: pointer;
+    font-weight: 500;
+    font-size: 1.2rem;
+    transition: all var(--transition-duration) ease;
+    box-shadow: 0 4px 10px var(--shadow-color);
+}
+
+#back-to-table:hover {
+    background: var(--menu-hover-bg);
+    transform: translateY(-4px);
+    box-shadow: 0 8px 15px var(--shadow-color);
+}
+
+@media (max-width: 1280px) {
+    .data-table-container,
+    #chart-container {
+        max-width: 100%;
+        padding: 2.5rem;
+    }
+
+    .data-table th,
+    .data-table td {
+        font-size: 1.1rem;
+        padding: 1rem;
+    }
+
+    #data-chart {
+        max-height: 550px;
+    }
+
+    .filter-form input[type="date"],
+    .filter-form button {
+        width: 100%;
+        max-width: 220px;
+        font-size: 1.1rem;
+        padding: 0.8rem;
+    }
+
+    .filter-form {
+        padding: 0.8rem;
+    }
+
+    #back-to-table {
+        margin-bottom: 2rem;
+    }
+}
+
+@media (max-width: 1024px) {
+    .menu-container {
+        width: 280px;
+        left: calc(-280px);
+    }
+
+    .menu-container:hover,
+    .menu-trigger:hover ~ .menu-container {
+        transform: translateX(280px);
+    }
+
+    .menu-trigger {
+        width: 40px; /* Updated to match root variable */
+    }
+
+    .menu-item {
+        font-size: 1rem;
+        padding: 0.8rem 1.2rem;
+    }
+
+    .menu-item i {
+        font-size: 1.4rem;
+    }
+
+    .menu {
+        padding: 2.5rem 1.5rem;
+        gap: 1.2rem;
+    }
+
+    .data-table-container {
+        padding: 2rem;
+    }
+
+    .data-table th,
+    .data-table td {
+        font-size: 1rem;
+        padding: 0.8rem;
+        border-right: none;
+    }
+
+    .data-table th {
+        border-right: none;
+    }
+
+    .filter-form {
+        flex-direction: column;
+        align-items: center;
+        gap: 1.5rem;
+        padding: 0.6rem;
+    }
+
+    .filter-form input[type="date"],
+    .filter-form button {
+        max-width: 200px;
+    }
+
+    #chart-container {
+        padding: 2rem;
+    }
+
+    #data-chart {
+        max-height: 450px;
+    }
+}
+
+@media (max-width: 768px) {
+    .menu-container {
+        width: 240px;
+        left: calc(-240px);
+    }
+
+    .menu-container:hover,
+    .menu-trigger:hover ~ .menu-container {
+        transform: translateX(240px);
+    }
+
+    .menu-trigger {
+        width: 30px; /* Further reduced for small screens */
+    }
+
+    .menu-trigger::before {
+        font-size: 1.2rem; /* Adjust icon size */
+    }
+
+    .menu-item {
+        font-size: 0.9rem;
+        padding: 0.6rem 1rem;
+    }
+
+    .menu-item i {
+        font-size: 1.2rem;
+    }
+
+    .menu {
+        padding: 2rem 1.2rem;
+        gap: 1rem;
+    }
+
+    .data-table th,
+    .data-table td {
+        font-size: 0.9rem;
+        padding: 0.6rem;
+    }
+
+    .data-table-container h2 {
+        font-size: 1.8rem;
+    }
+
+    .filter-form input[type="date"],
+    .filter-form button {
+        font-size: 1rem;
+        padding: 0.6rem;
+    }
+
+    #back-to-table {
+        font-size: 1rem;
+        padding: 0.6rem 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    #data-chart {
+        max-height: 400px;
+    }
+
+    .filter-form {
+        padding: 0.5rem;
+    }
+}
+</style>
 </head>
 <body>
-    <!-- Menu Trigger and Sidebar -->
     <div class="menu-trigger"></div>
     <div class="menu-container">
-        <div class="menu">
-        <a href="index.html" class="menu-item"><i class="fas fa-home"></i> Trang chủ</a>
-            <a href="dataanalist.html" class="menu-item"><i class="fas fa-chart-line"></i> Phân tích</a>
-            <a href="giong.html" class="menu-item"><i class="fas fa-seedling"></i> Đề xuất giống</a>
-            <a href="#" class="menu-item"><i class="fas fa-gamepad"></i> Điều khiển</a>
-            <a href="#" class="menu-item"><i class="fas fa-comment"></i> Chat Box</a>
-            <a href="#" class="menu-item"><i class="fas fa-cog"></i> Cài đặt</a>
-            <a href="#" class="menu-item"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a>
-        </div>
-        </div>
-    </div>
+      <div class="menu">
+    <a href="home.html" class="menu-item"><i class="fas fa-home"></i> Trang chủ</a>
+<a href="dataanalist.html" class="menu-item"><i class="fas fa-chart-line"></i> Phân tích</a>
+<a href="giong.html" class="menu-item"><i class="fas fa-seedling"></i> Đề xuất cây</a>
+<a href="nuoi.html" class="menu-item"><i class="fas fa-seedling"></i> Đề xuất vật nuôi</a>
+<a href="chon-giong.html" class="menu-item"><i class="fas fa-leaf"></i> Chọn giống</a>
+<a href="sl.html" class="menu-item"><i class="fas fa-seedling"></i> Sản lượng</a>
+<a href="#" class="menu-item"><i class="fas fa-gamepad"></i> Điều khiển</a>
+<a href="#" class="menu-item"><i class="fas fa-comment"></i> Chat Box</a>
 
-    <div class="title">Phân tích dữ liệu</div>
-    <div class="body-container">
-        <!-- Current Data Display -->
-        <div class="data-table-container">
-            <div class="status-indicator">
-                <div class="status-dot"></div>
-                <span class="status-text">Đang kết nối với CSDL</span>
-                <span class="last-update" id="lastUpdate">Cập nhật cuối: --:--:--</span>
-            </div>
-            
-            <div class="control-buttons">
-                <button class="filter-btn" id="filterBtn" onclick="toggleHistoryData()">
-                    <i class="fas fa-filter"></i> Lọc dữ liệu
-                </button>
-                <button class="export-btn" id="exportBtn" onclick="exportToExcel()" style="display: none;">
-                    <i class="fas fa-download"></i> Xuất Excel
-                </button>
-                <button class="filter-btn" id="chartBtn" onclick="generateChart()" style="display: none;">
-                    <i class="fas fa-chart-line"></i> Vẽ biểu đồ
-                </button>
-            </div>
-
-            <!-- Date Range Filter -->
-            <div class="date-filter-container" id="dateFilterContainer" style="display: none;">
-                <div class="date-filter">
-                    <div class="date-input-group">
-                        <label for="startDate"><i class="fas fa-calendar-alt"></i> Từ ngày:</label>
-                        <input type="datetime-local" id="startDate" class="date-input">
-                    </div>
-                    <div class="date-input-group">
-                        <label for="endDate"><i class="fas fa-calendar-alt"></i> Đến ngày:</label>
-                        <input type="datetime-local" id="endDate" class="date-input">
-                    </div>
-                    <button class="apply-filter-btn" onclick="applyDateFilter()">
-                        <i class="fas fa-search"></i> Áp dụng
-                    </button>
-                    <button class="reset-filter-btn" onclick="resetDateFilter()">
-                        <i class="fas fa-undo"></i> Đặt lại
-                    </button>
-                </div>
-                <div class="filter-info" id="filterInfo">
-                    <i class="fas fa-info-circle"></i> Hiển thị tối đa 20,000 bản ghi gần nhất
-                </div>
-            </div>
-            
-            <!-- Current Data Table -->
-            <div id="currentDataView">
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th><i class="fas fa-thermometer-half"></i> Thông số</th>
-                            <th><i class="fas fa-chart-bar"></i> Giá trị</th>
-                            <th><i class="fas fa-info-circle"></i> Đơn vị</th>
-                        </tr>
-                    </thead>
-                    <tbody id="dataTableBody">
-                        <tr>
-                            <td>Độ ẩm không khí</td>
-                            <td class="data-value" id="humidity">--</td>
-                            <td class="data-unit">%</td>
-                        </tr>
-                        <tr>
-                            <td>Nồng độ NH₃</td>
-                            <td class="data-value" id="nh3">--</td>
-                            <td class="data-unit">ppm</td>
-                        </tr>
-                        <tr>
-                            <td>Lượng mưa</td>
-                            <td class="data-value" id="precipitation">--</td>
-                            <td class="data-unit">mm</td>
-                        </tr>
-                        <tr>
-                            <td>Độ ẩm đất</td>
-                            <td class="data-value" id="soilMoisture">--</td>
-                            <td class="data-unit">%</td>
-                        </tr>
-                        <tr>
-                            <td>Nhiệt độ</td>
-                            <td class="data-value" id="temperature">--</td>
-                            <td class="data-unit">°C</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <!-- Historical Data Table -->
-            <div id="historyDataView" style="display: none;">
-                <div class="table-info">
-                    <h3><i class="fas fa-history"></i> Dữ liệu lịch sử (Tối đa 20,000 bản ghi)</h3>
-                    <p>Hiển thị dữ liệu theo thời gian thực</p>
-                </div>
-                <div class="table-wrapper">
-                    <table class="history-table">
-                        <thead>
-                            <tr>
-                                <th>STT</th>
-                                <th style="width: 200px;">Thời gian</th>
-                                <th>Nhiệt độ</th>
-                                <th>Độ ẩm</th>
-                                <th>Lượng mưa</th>
-                                <th>NH₃</th>
-                                <th>Độ ẩm đất</th>
-                            </tr>
-                        </thead>
-                        <tbody id="historyTableBody"></tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- Chart Container -->
-            <div id="chartContainer" style="display: none; margin-top: 2rem;">
-                <canvas id="dataChart"></canvas>
-            </div>
+<a href="#" class="menu-item"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a>
         </div>
     </div>
+    <div class="data-table-container" id="data-table-container">
+        <h2>Dữ liệu từ CSDL</h2>
+    <form class="filter-form">
+    <label for="start-datetime">Từ thời điểm:</label>
+    <input type="datetime-local" id="start-datetime" required>
+    <label for="end-datetime">Đến thời điểm:</label>
+    <input type="datetime-local" id="end-datetime" required>
+    <button type="submit">Lọc</button>
+    <button type="button" id="draw-chart">Vẽ biểu đồ</button>
+    <button type="button" id="download-excel">Tải Excel</button>
+</form>
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Thời gian</th>
+                    <th>Nhiệt độ (°C)</th>
+                    <th>Độ ẩm (%)</th>
+                    <th>Độ ẩm đất (%)</th>
+                    <th>NH3 (ppm)</th>
+                    <th>Lượng mưa (mm)</th>
+                </tr>
+            </thead>
+            <tbody id="data-table-body"></tbody>
+        </table>
+    </div>
+    <div id="chart-container">
+        <button type="button" id="back-to-table">Quay lại bảng</button>
+        <canvas id="data-chart"></canvas>
+    </div>
+
+    <!-- Firebase SDK phiên bản 8.x -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
     <script>
-        // Firebase configuration
+        // Cấu hình Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyBNAFhMZtU3ubH5R6ZaYZ1rmt-4PLONfj4",
             authDomain: "myweb-34625.firebaseapp.com",
-            databaseURL: "https://myweb-34625-default-rtdb.firebaseio.com",
             projectId: "myweb-34625",
             storageBucket: "myweb-34625.firebasestorage.app",
             messagingSenderId: "140146495176",
@@ -826,396 +584,401 @@
             measurementId: "G-7GNXDSY3F2"
         };
 
-        // Initialize Firebase
+        // Khởi tạo Firebase
         firebase.initializeApp(firebaseConfig);
+
+        // Tham chiếu đến Firebase Realtime Database
         const database = firebase.database();
+        const dataRef = database.ref('data');
+        const historyRef = database.ref('data_history');
 
-        // Store historical data
-        let historicalData = [];
-        let isShowingHistory = false;
-        let allFirebaseData = [];
-        let lastUpdateTime = null;
+        // Hàm định dạng thời gian
+      // Hàm định dạng thời gian
+function formatDateTime(timestamp) {
+    const date = new Date(timestamp);
+    const pad = (num) => String(num).padStart(2, '0');
+    const day = pad(date.getDate());
+    const month = pad(date.getMonth() + 1);
+    const year = date.getFullYear();
+    const hours = pad(date.getHours());
+    const minutes = pad(date.getMinutes());
+    const seconds = pad(date.getSeconds());
+    return `${day}/${month}/${year} ${hours}:${minutes}:${seconds}`;
+}
 
-        // Get data from Firebase
-        function getFirebaseData() {
-            const dataRef = database.ref('data').limitToLast(20000);
-            
-            dataRef.on('value', (snapshot) => {
-                const data = snapshot.val();
-                if (data) {
-                    const now = new Date();
-                    if (lastUpdateTime) {
-                        const timeDiff = (now - lastUpdateTime) / 1000;
-                        console.log(`Firebase updated at ${now.toLocaleTimeString('vi-VN')}, interval: ${timeDiff}s`);
-                    }
-                    lastUpdateTime = now;
+// Xử lý sự kiện lọc
+document.querySelector('.filter-form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const startDateTimeInput = document.getElementById('start-datetime').value;
+    const endDateTimeInput = document.getElementById('end-datetime').value;
 
-                    updateCurrentDataDisplay(data);
-                    
-                    const newEntry = {
-                        ...data,
-                        timestamp: now,
-                        id: Date.now()
-                    };
-                    
-                    allFirebaseData.unshift(newEntry);
-                    if (allFirebaseData.length > 20000) {
-                        allFirebaseData = allFirebaseData.slice(0, 20000);
-                    }
+    if (!startDateTimeInput || !endDateTimeInput) {
+        alert('Vui lòng chọn cả thời điểm bắt đầu và thời điểm kết thúc.');
+        return;
+    }
 
-                    if (isShowingHistory) {
-                        const startDate = new Date(document.getElementById('startDate').value);
-                        const endDate = new Date(document.getElementById('endDate').value);
-                        if (startDate && endDate && startDate < endDate) {
-                            applyDateFilter();
-                        } else {
-                            historicalData = getRecentData(20000);
-                            populateHistoryTable(true);
-                        }
-                    }
-                }
-            }, (error) => {
-                console.error('Firebase error:', error);
-                document.querySelector('.status-text').textContent = 'Lỗi kết nối Firebase';
-            });
-        }
+    const startDateTime = new Date(startDateTimeInput);
+    const endDateTime = new Date(endDateTimeInput);
 
-        // Update current data display
-        function updateCurrentDataDisplay(data) {
-            if (!isShowingHistory) {
-                document.getElementById('humidity').textContent = data.humidity || '--';
-                document.getElementById('nh3').textContent = data.nh3 || '--';
-                document.getElementById('precipitation').textContent = data.precipitation || '--';
-                document.getElementById('soilMoisture').textContent = data.soil_moisture || '--';
-                document.getElementById('temperature').textContent = data.temperature || '--';
-                
-                const table = document.querySelector('.data-table');
-                table.classList.remove('flash-update');
-                void table.offsetWidth;
-                table.classList.add('flash-update');
-            }
-            
-            const now = new Date();
-            document.getElementById('lastUpdate').textContent = `Cập nhật cuối: ${now.toLocaleTimeString('vi-VN')}`;
-            document.querySelector('.status-text').textContent = 'Kết nối CSDL thành công';
-        }
+    // Kiểm tra thời gian bắt đầu < thời gian kết thúc
+    if (startDateTime >= endDateTime) {
+        alert('Thời điểm bắt đầu phải nhỏ hơn thời điểm kết thúc.');
+        return;
+    }
 
-        // Format timestamp to match Excel format
-        function formatTimestamp(date) {
-            const year = date.getFullYear();
-            const month = String(date.getMonth() + 1).padStart(2, '0');
-            const day = String(date.getDate()).padStart(2, '0');
-            const hours = String(date.getHours()).padStart(2, '0');
-            const minutes = String(date.getMinutes()).padStart(2, '0');
-            const seconds = String(date.getSeconds()).padStart(2, '0');
-            return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
-        }
+    const startTimestamp = startDateTime.getTime();
+    const endTimestamp = endDateTime.getTime();
 
-        // Toggle between current and historical data view
-        function toggleHistoryData() {
-            const currentView = document.getElementById('currentDataView');
-            const historyView = document.getElementById('historyDataView');
-            const filterBtn = document.getElementById('filterBtn');
-            const exportBtn = document.getElementById('exportBtn');
-            const chartBtn = document.getElementById('chartBtn');
-            const dateFilterContainer = document.getElementById('dateFilterContainer');
-            
-            if (!isShowingHistory) {
-                initializeDateInputs();
-                historicalData = getRecentData(20000);
-                populateHistoryTable();
-                
-                currentView.style.display = 'none';
-                historyView.style.display = 'block';
-                dateFilterContainer.style.display = 'block';
-                filterBtn.innerHTML = '<i class="fas fa-arrow-left"></i> Quay lại';
-                exportBtn.style.display = 'inline-flex';
-                chartBtn.style.display = 'inline-flex';
-                isShowingHistory = true;
-            } else {
-                currentView.style.display = 'block';
-                historyView.style.display = 'none';
-                dateFilterContainer.style.display = 'none';
-                filterBtn.innerHTML = '<i class="fas fa-filter"></i> Lọc dữ liệu';
-                exportBtn.style.display = 'none';
-                chartBtn.style.display = 'none';
-                isShowingHistory = false;
-            }
-        }
+    historyRef.orderByChild('timestamp').startAt(startTimestamp).endAt(endTimestamp).once('value', (snapshot) => {
+        const tableBody = document.getElementById('data-table-body');
+        tableBody.innerHTML = '';
 
-        // Initialize date inputs with default values
-        function initializeDateInputs() {
-            const now = new Date();
-            const oneMonthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-            
-            const formatForInput = (date) => {
-                const year = date.getFullYear();
-                const month = String(date.getMonth() + 1).padStart(2, '0');
-                const day = String(date.getDate()).padStart(2, '0');
-                const hours = String(date.getHours()).padStart(2, '0');
-                const minutes = String(date.getMinutes()).padStart(2, '0');
-                return `${year}-${month}-${day}T${hours}:${minutes}`;
+        const records = [];
+        snapshot.forEach((childSnapshot) => {
+            const data = childSnapshot.val();
+            const logData = {
+                temperature: data.temperature ? data.temperature.toFixed(1) : 'N/A',
+                humidity: data.humidity ? data.humidity.toFixed(1) : 'N/A',
+                soil_moisture: data.soil_moisture ? data.soil_moisture.toFixed(1) : 'N/A',
+                nh3: data.nh3 ? data.nh3.toFixed(1) : 'N/A',
+                precipitation: data.precipitation ? data.precipitation.toFixed(1) : 'N/A'
             };
-            
-            document.getElementById('startDate').value = formatForInput(oneMonthAgo);
-            document.getElementById('endDate').value = formatForInput(now);
-        }
+            records.push(logData);
 
-        // Get recent data (default 20,000 records)
-        function getRecentData(limit = 20000) {
-            return allFirebaseData.slice(0, limit).map((item, index) => ({
-                id: index + 1,
-                timestamp: item.timestamp,
-                temperature: item.temperature || 0,
-                humidity: item.humidity || 0,
-                precipitation: item.precipitation || 0,
-                nh3: item.nh3 || 0,
-                soil_moisture: item.soil_moisture || 0
-            }));
-        }
+            const timeString = formatDateTime(data.timestamp);
+            const newRow = document.createElement('tr');
+            newRow.innerHTML = `
+                <td>${timeString}</td>
+                <td>${logData.temperature}</td>
+                <td>${logData.humidity}</td>
+                <td>${logData.soil_moisture}</td>
+                <td>${logData.nh3}</td>
+                <td>${logData.precipitation}</td>
+            `;
+            tableBody.insertBefore(newRow, tableBody.firstChild);
+        });
 
-        // Apply date filter
-        function applyDateFilter() {
-            const startDate = new Date(document.getElementById('startDate').value);
-            const endDate = new Date(document.getElementById('endDate').value);
-            
-            if (!startDate || !endDate) {
-                alert('Vui lòng chọn cả ngày bắt đầu và ngày kết thúc');
-                return;
-            }
-            
-            if (startDate >= endDate) {
-                alert('Ngày bắt đầu phải nhỏ hơn ngày kết thúc');
-                return;
-            }
-            
-            const filteredData = allFirebaseData
-                .filter(item => {
-                    const itemDate = new Date(item.timestamp);
-                    return itemDate >= startDate && itemDate <= endDate;
-                })
-                .map((item, index) => ({
-                    id: index + 1,
-                    timestamp: item.timestamp,
-                    temperature: item.temperature || 0,
-                    humidity: item.humidity || 0,
-                    precipitation: item.precipitation || 0,
-                    nh3: item.nh3 || 0,
-                    soil_moisture: item.soil_moisture || 0
-                }));
-            
-            historicalData = filteredData;
-            populateHistoryTable();
-            
-            const filterInfo = document.getElementById('filterInfo');
-            const startStr = startDate.toLocaleDateString('vi-VN') + ' ' + startDate.toLocaleTimeString('vi-VN');
-            const endStr = endDate.toLocaleDateString('vi-VN') + ' ' + endDate.toLocaleTimeString('vi-VN');
-            filterInfo.innerHTML = `<i class="fas fa-filter"></i> Hiển thị ${filteredData.length} bản ghi từ ${startStr} đến ${endStr}`;
-        }
+        console.log('Bản ghi trong khoảng thời gian:', records);
+        document.querySelector('.filter-form').dataset.active = 'true';
+    }, (error) => {
+        console.error('Lỗi khi lọc dữ liệu:', error.message);
+        alert('Có lỗi xảy ra khi lọc dữ liệu.');
+    });
+});
 
-        // Reset date filter
-        function resetDateFilter() {
-            initializeDateInputs();
-            historicalData = getRecentData(20000);
-            populateHistoryTable();
-            
-            const filterInfo = document.getElementById('filterInfo');
-            filterInfo.innerHTML = '<i class="fas fa-info-circle"></i> Hiển thị tối đa 20,000 bản ghi gần nhất';
-        }
+        // Hàm lấy dữ liệu từ bảng HTML
+        function getTableData() {
+            const tableBody = document.getElementById('data-table-body');
+            const rows = tableBody.getElementsByTagName('tr');
+            const data = [];
 
-        // Virtual scrolling for history table
-        function populateHistoryTable(highlightNew = false) {
-            const tbody = document.getElementById('historyTableBody');
-            const tableWrapper = document.querySelector('.table-wrapper');
-            const rowHeight = 40;
-            const visibleRows = Math.ceil(tableWrapper.clientHeight / rowHeight) + 5;
-            
-            tbody.innerHTML = '';
-            
-            if (historicalData.length === 0) {
-                const row = document.createElement('tr');
-                row.innerHTML = '<td colspan="7" style="text-align: center; padding: 2rem; color: #666;">Không có dữ liệu trong khoảng thời gian này</td>';
-                tbody.appendChild(row);
-                return;
-            }
-            
-            let startIndex = Math.floor(tableWrapper.scrollTop / rowHeight);
-            let endIndex = Math.min(startIndex + visibleRows, historicalData.length);
-            
-            for (let i = startIndex; i < endIndex; i++) {
-                const record = historicalData[i];
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${record.id}</td>
-                    <td class="time-cell">${formatTimestamp(record.timestamp)}</td>
-                    <td class="data-cell">${record.temperature}</td>
-                    <td class="data-cell">${record.humidity}</td>
-                    <td class="data-cell">${record.precipitation}</td>
-                    <td class="data-cell">${record.nh3}</td>
-                    <td class="data-cell">${record.soil_moisture}</td>
-                `;
-                if (highlightNew && i === startIndex) {
-                    row.classList.add('new-record');
+            for (let row of rows) {
+                const cells = row.getElementsByTagName('td');
+                if (cells.length >= 6) {
+                    data.push({
+                        time: cells[0].textContent,
+                        temperature: parseFloat(cells[1].textContent) || null,
+                        humidity: parseFloat(cells[2].textContent) || null,
+                        soil_moisture: parseFloat(cells[3].textContent) || null,
+                        nh3: parseFloat(cells[4].textContent) || null,
+                        precipitation: parseFloat(cells[5].textContent) || null
+                    });
                 }
-                tbody.appendChild(row);
             }
-            
-            tbody.style.height = `${historicalData.length * rowHeight}px`;
-            
-            tableWrapper.onscroll = () => {
-                const newStartIndex = Math.floor(tableWrapper.scrollTop / rowHeight);
-                if (newStartIndex !== startIndex) {
-                    populateHistoryTable();
-                }
-            };
+            return data.reverse(); // Đảo ngược để vẽ biểu đồ theo thứ tự thời gian tăng dần
         }
 
-        // Export data to CSV using PapaParse
-        function exportToExcel() {
-            if (historicalData.length === 0) {
-                alert('Không có dữ liệu để xuất');
-                return;
-            }
-            
-            const data = historicalData.map(record => ({
-                STT: record.id,
-                'Thời gian': formatTimestamp(record.timestamp),
-                'Nhiệt độ': record.temperature,
-                'Độ ẩm': record.humidity,
-                'Lượng mưa': record.precipitation,
-                NH3: record.nh3,
-                'Độ ẩm đất': record.soil_moisture
-            }));
-            
-            const csv = Papa.unparse(data, {
-                quotes: true,
-                delimiter: ',',
-                header: true
-            });
-            
-            const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement('a');
-            const url = URL.createObjectURL(blob);
-            link.setAttribute('href', url);
-            link.setAttribute('download', `du_lieu_cam_bien_${new Date().toISOString().slice(0,10)}.csv`);
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
+        // Hàm vẽ biểu đồ
+        let chartInstance = null;
+    function drawChart() {
+    const data = getTableData().slice(0, 50); // Chỉ lấy 50 bản ghi gần nhất
+    if (data.length === 0) {
+        alert('Không có dữ liệu để vẽ biểu đồ.');
+        return;
+    }
 
-        // Generate chart with all historical data
-        function generateChart() {
-            const chartContainer = document.getElementById('chartContainer');
-            const chartCanvas = document.getElementById('dataChart');
-            const filterBtn = document.getElementById('filterBtn');
-            const exportBtn = document.getElementById('exportBtn');
-            const chartBtn = document.getElementById('chartBtn');
+    // Ẩn bảng và hiện biểu đồ
+    const tableContainer = document.getElementById('data-table-container');
+    const chartContainer = document.getElementById('chart-container');
+    tableContainer.style.display = 'none';
+    chartContainer.style.display = 'block';
 
-            if (chartContainer.style.display === 'none') {
-                // Prepare data for chart
-                const labels = historicalData.map(record => formatTimestamp(record.timestamp));
-                const temperatures = historicalData.map(record => record.temperature || 0);
-                const humidities = historicalData.map(record => record.humidity || 0);
-                const precipitations = historicalData.map(record => record.precipitation || 0);
-                const nh3s = historicalData.map(record => record.nh3 || 0);
-                const soilMoistures = historicalData.map(record => record.soil_moisture || 0);
+    if (chartInstance) {
+        chartInstance.destroy(); // Hủy biểu đồ cũ nếu có
+    }
 
-                // Destroy existing chart if it exists
-                if (window.myChart) {
-                    window.myChart.destroy();
+    const ctx = document.getElementById('data-chart').getContext('2d');
+    chartInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: data.map(row => row.time),
+            datasets: [
+                {
+                    label: 'Nhiệt độ (°C)',
+                    data: data.map(row => row.temperature),
+                    borderColor: '#e74c3c',
+                    fill: false,
+                    tension: 0.1
+                },
+                {
+                    label: 'Độ ẩm (%)',
+                    data: data.map(row => row.humidity),
+                    borderColor: '#3498db',
+                    fill: false,
+                    tension: 0.1
+                },
+                {
+                    label: 'Độ ẩm đất (%)',
+                    data: data.map(row => row.soil_moisture),
+                    borderColor: '#2ecc71',
+                    fill: false,
+                    tension: 0.1
+                },
+                {
+                    label: 'NH3 (ppm)',
+                    data: data.map(row => row.nh3),
+                    borderColor: '#f1c40f',
+                    fill: false,
+                    tension: 0.1
+                },
+                {
+                    label: 'Lượng mưa (mm)',
+                    data: data.map(row => row.precipitation),
+                    borderColor: '#9b59b6',
+                    fill: false,
+                    tension: 0.1
                 }
-
-                // Create chart
-                window.myChart = new Chart(chartCanvas, {
-                    type: 'line',
-                    data: {
-                        labels: labels,
-                        datasets: [
-                            {
-                                label: 'Nhiệt độ (°C)',
-                                data: temperatures,
-                                borderColor: 'rgb(255, 99, 132)',
-                                tension: 0.1
-                            },
-                            {
-                                label: 'Độ ẩm (%)',
-                                data: humidities,
-                                borderColor: 'rgb(54, 162, 235)',
-                                tension: 0.1
-                            },
-                            {
-                                label: 'Lượng mưa (mm)',
-                                data: precipitations,
-                                borderColor: 'rgb(75, 192, 192)',
-                                tension: 0.1
-                            },
-                            {
-                                label: 'NH₃ (ppm)',
-                                data: nh3s,
-                                borderColor: 'rgb(255, 205, 86)',
-                                tension: 0.1
-                            },
-                            {
-                                label: 'Độ ẩm đất (%)',
-                                data: soilMoistures,
-                                borderColor: 'rgb(153, 102, 255)',
-                                tension: 0.1
-                            }
-                        ]
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'Biểu đồ Dữ liệu Môi trường (50 giá trị gần nhất)', // Tiêu đề biểu đồ
+                    font: {
+                        size: 20,
+                        weight: 'bold',
+                        family: 'Poppins'
                     },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        scales: {
-                            x: {
-                                title: {
-                                    display: true,
-                                    text: 'Thời gian'
-                                }
-                            },
-                            y: {
-                                title: {
-                                    display: true,
-                                    text: 'Giá trị'
-                                },
-                                beginAtZero: true
-                            }
-                        },
-                        plugins: {
-                            legend: {
-                                position: 'top'
-                            },
-                            title: {
-                                display: true,
-                                text: 'Biểu đồ dữ liệu lịch sử'
-                            }
-                        }
+                    color: '#1a2632'
+                },
+                legend: {
+                    position: 'top'
+                }
+            },
+            scales: {
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Thời gian'
+                    },
+                    ticks: {
+                        maxRotation: 45,
+                        minRotation: 45,
+                        maxTicksLimit: 10
                     }
+                },
+                y: {
+                    title: {
+                        display: true,
+                        text: 'Giá trị'
+                    },
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+}
+        // Hàm quay lại bảng
+        function showTable() {
+            const tableContainer = document.getElementById('data-table-container');
+            const chartContainer = document.getElementById('chart-container');
+            tableContainer.style.display = 'block';
+            chartContainer.style.display = 'none';
+            if (chartInstance) {
+                chartInstance.destroy(); // Hủy biểu đồ để tiết kiệm tài nguyên
+            }
+        }
+
+        // Hàm tải file Excel
+        function downloadExcel() {
+            const data = getTableData();
+            if (data.length === 0) {
+                alert('Không có dữ liệu để tải Excel.');
+                return;
+            }
+
+            const worksheetData = [
+                ['Thời gian', 'Nhiệt độ (°C)', 'Độ ẩm (%)', 'Độ ẩm đất (%)', 'NH3 (ppm)', 'Lượng mưa (mm)'],
+                ...data.map(row => [
+                    row.time,
+                    row.temperature || 'N/A',
+                    row.humidity || 'N/A',
+                    row.soil_moisture || 'N/A',
+                    row.nh3 || 'N/A',
+                    row.precipitation || 'N/A'
+                ])
+            ];
+
+            const worksheet = XLSX.utils.aoa_to_sheet(worksheetData);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, 'Data');
+            const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+            const blob = new Blob([excelBuffer], { type: 'application/octet-stream' });
+            saveAs(blob, `Data_Export_${new Date().toISOString().split('T')[0]}.xlsx`);
+        }
+
+        // Lắng nghe thay đổi thời gian thực từ /data
+        dataRef.on('value', (snapshot) => {
+            const data = snapshot.val();
+            const tableBody = document.getElementById('data-table-body');
+            const now = Date.now();
+            const timeString = formatDateTime(now);
+
+            const logData = {
+                temperature: data && data.temperature ? data.temperature.toFixed(1) : 'N/A',
+                humidity: data && data.humidity ? data.humidity.toFixed(1) : 'N/A',
+                soil_moisture: data && data.soil_moisture ? data.soil_moisture.toFixed(1) : 'N/A',
+                nh3: data && data.nh3 ? data.nh3.toFixed(1) : 'N/A',
+                precipitation: data && data.precipitation ? data.precipitation.toFixed(1) : 'N/A'
+            };
+
+            console.log('Dữ liệu Firebase thay đổi:', logData);
+
+            if (data) {
+                const historyData = {
+                    temperature: data.temperature || null,
+                    humidity: data.humidity || null,
+                    soil_moisture: data.soil_moisture || null,
+                    nh3: data.nh3 || null,
+                    precipitation: data.precipitation || null,
+                    timestamp: now
+                };
+                historyRef.push(historyData)
+                    .then(() => {
+                        console.log('Đã ghi bản ghi vào /data_history:', historyData);
+                        manageRecordLimit();
+                    })
+                    .catch((error) => {
+                        console.error('Lỗi khi ghi vào /data_history:', error.message);
+                    });
+            }
+
+            if (!document.querySelector('.filter-form').dataset.active) {
+                const newRow = document.createElement('tr');
+                newRow.innerHTML = `
+                    <td>${timeString}</td>
+                    <td>${logData.temperature}</td>
+                    <td>${logData.humidity}</td>
+                    <td>${logData.soil_moisture}</td>
+                    <td>${logData.nh3}</td>
+                    <td>${logData.precipitation}</td>
+                `;
+                tableBody.insertBefore(newRow, tableBody.firstChild);
+
+                const maxRows = 50;
+                if (tableBody.children.length > maxRows) {
+                    tableBody.removeChild(tableBody.lastChild);
+                }
+            }
+        }, (error) => {
+            console.error('Lỗi khi lấy dữ liệu Firebase:', error.message);
+            const logData = {
+                temperature: 'Error',
+                humidity: 'Error',
+                soil_moisture: 'Error',
+                nh3: 'Error',
+                precipitation: 'Error'
+            };
+            console.log('Dữ liệu Firebase thay đổi:', logData);
+
+            if (!document.querySelector('.filter-form').dataset.active) {
+                const tableBody = document.getElementById('data-table-body');
+                const timeString = formatDateTime(Date.now());
+                const newRow = document.createElement('tr');
+                newRow.innerHTML = `
+                    <td>${timeString}</td>
+                    <td>Error</td>
+                    <td>Error</td>
+                    <td>Error</td>
+                    <td>Error</td>
+                    <td>Error</td>
+                `;
+                tableBody.insertBefore(newRow, tableBody.firstChild);
+            }
+        });
+
+        // Xử lý sự kiện lọc
+        document.querySelector('.filter-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const startDateInput = document.getElementById('start-date').value;
+            const endDateInput = document.getElementById('end-date').value;
+
+            if (!startDateInput || !endDateInput) {
+                alert('Vui lòng chọn cả ngày bắt đầu và ngày kết thúc.');
+                return;
+            }
+
+            const startDate = new Date(startDateInput);
+            startDate.setHours(0, 0, 0, 0);
+            const endDate = new Date(endDateInput);
+            endDate.setHours(23, 59, 59, 999);
+
+            const startTimestamp = startDate.getTime();
+            const endTimestamp = endDate.getTime();
+
+            historyRef.orderByChild('timestamp').startAt(startTimestamp).endAt(endTimestamp).once('value', (snapshot) => {
+                const tableBody = document.getElementById('data-table-body');
+                tableBody.innerHTML = '';
+
+                const records = [];
+                snapshot.forEach((childSnapshot) => {
+                    const data = childSnapshot.val();
+                    const logData = {
+                        temperature: data.temperature ? data.temperature.toFixed(1) : 'N/A',
+                        humidity: data.humidity ? data.humidity.toFixed(1) : 'N/A',
+                        soil_moisture: data.soil_moisture ? data.soil_moisture.toFixed(1) : 'N/A',
+                        nh3: data.nh3 ? data.nh3.toFixed(1) : 'N/A',
+                        precipitation: data.precipitation ? data.precipitation.toFixed(1) : 'N/A'
+                    };
+                    records.push(logData);
+
+                    const timeString = formatDateTime(data.timestamp);
+                    const newRow = document.createElement('tr');
+                    newRow.innerHTML = `
+                        <td>${timeString}</td>
+                        <td>${logData.temperature}</td>
+                        <td>${logData.humidity}</td>
+                        <td>${logData.soil_moisture}</td>
+                        <td>${logData.nh3}</td>
+                        <td>${logData.precipitation}</td>
+                    `;
+                    tableBody.insertBefore(newRow, tableBody.firstChild);
                 });
 
-                // Show chart and hide other views
-                document.getElementById('currentDataView').style.display = 'none';
-                document.getElementById('historyDataView').style.display = 'none';
-                chartContainer.style.display = 'block';
-                filterBtn.style.display = 'none';
-                exportBtn.style.display = 'none';
-                chartBtn.innerHTML = '<i class="fas fa-arrow-left"></i> Quay lại';
-            } else {
-                // Return to history view
-                document.getElementById('currentDataView').style.display = 'none';
-                document.getElementById('historyDataView').style.display = 'block';
-                chartContainer.style.display = 'none';
-                filterBtn.style.display = 'inline-flex';
-                exportBtn.style.display = 'inline-flex';
-                chartBtn.style.display = 'inline-flex';
-                chartBtn.innerHTML = '<i class="fas fa-chart-line"></i> Vẽ biểu đồ';
-            }
-        }
+                console.log('Bản ghi trong khoảng thời gian:', records);
+                document.querySelector('.filter-form').dataset.active = 'true';
+            }, (error) => {
+                console.error('Lỗi khi lọc dữ liệu:', error.message);
+                alert('Có lỗi xảy ra khi lọc dữ liệu.');
+            });
+        });
 
-        // Initialize Firebase connection
-        document.addEventListener('DOMContentLoaded', function() {
-            getFirebaseData();
-            document.querySelector('.status-text').textContent = 'Đang kết nối Firebase...';
+        // Xử lý sự kiện nút vẽ biểu đồ
+        document.getElementById('draw-chart').addEventListener('click', () => {
+            drawChart();
+        });
+
+        // Xử lý sự kiện nút quay lại bảng
+        document.getElementById('back-to-table').addEventListener('click', () => {
+            showTable();
+        });
+
+        // Xử lý sự kiện nút tải Excel
+        document.getElementById('download-excel').addEventListener('click', () => {
+            downloadExcel();
         });
     </script>
 </body>

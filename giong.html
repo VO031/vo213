@@ -3,80 +3,59 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hệ thống dự đoán sản lượng và giống phù hợp</title>
+    <title>Hệ thống dự đoán giống cây phù hợp</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <style>
-        /* Biến gốc cho chủ đề và tái sử dụng */
         :root {
-            --border-radius: 1.2rem;
-            --transition-duration: 0.3s;
-            --font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            --shadow-color: rgba(0, 0, 0, 0.12);
-            --glass-bg: rgba(255, 255, 255, 0.15);
-            --glass-blur: blur(12px);
-            --menu-width: 250px;
-            --menu-trigger-width: 20px;
-            --text-dark: #1a2632;
-            --box-bg: rgba(255, 255, 255, 0.85);
+            --primary-color: #28a745;
+            --secondary-color: #6b4e31;
+            --accent-color: #17a2b8;
+            --text-color: #2d3748;
+            --background-color: #f7fafc;
+            --card-bg: rgba(255, 255, 255, 0.95);
+            --glass-bg: rgba(255, 255, 255, 0.2);
+            --shadow-color: rgba(0, 0, 0, 0.1);
+            --border-radius: 12px;
+            --transition: all 0.3s ease;
+            --font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            --menu-width: 280px;
+            --menu-trigger-width: 12px;
         }
 
-        /* Chủ đề sáng (mặc định) */
-        :root {
-            --primary-gradient-start: #a8e6cf;
-            --primary-gradient-end: #dcedc8;
-            --menu-bg: rgba(255, 255, 255, 0.9);
-            --menu-hover-bg: rgba(230, 230, 230, 0.8);
-            --menu-text: #1a2632;
-        }
-
-        /* Hỗ trợ chủ đề tối */
         @media (prefers-color-scheme: dark) {
             :root {
-                --primary-gradient-start: #2d6a4f;
-                --primary-gradient-end: #4a7043;
-                --menu-bg: rgba(40, menu-container: 0.9);
-                --menu-hover-bg: rgba(60, 80, 100, 0.8);
-                --menu-text: #e6ecef;
-                --text-dark: #e6ecef;
-                --box-bg: rgba(40, 54, 70, 0.9);
+                --primary-color: #38c172;
+                --secondary-color: #8b6f47;
+                --accent-color: #2bc4d9;
+                --text-color: #e2e8f0;
+                --background-color: #1a202c;
+                --card-bg: rgba(45, 55, 72, 0.95);
+                --glass-bg: rgba(45, 55, 72, 0.3);
+                --shadow-color: rgba(0, 0, 0, 0.2);
             }
         }
 
-        /* Reset và kiểu cơ bản */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            font-family: var(--font-family);
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
         }
 
         body {
-            font-family: var(--font-family);
             min-height: 100vh;
-            background: linear-gradient(135deg, var(--primary-gradient-start), var(--primary-gradient-end));
-            padding: clamp(1.5rem, 5vw, 2.5rem);
-            overflow-x: hidden;
-            position: relative;
-        }
-
-        /* Kiểu cho menu thanh bên */
-        .menu-container {
-            position: fixed;
-            top: 0;
-            left: calc(-1 * var(--menu-width));
-            width: var(--menu-width);
-            height: 100%;
-            background: var(--menu-bg);
-            backdrop-filter: var(--glass-blur);
-            border-right: 2px solid rgba(255, 255, 255, 0.4);
-            box-shadow: 0 8px 20px var(--shadow-color);
-            transition: transform var(--transition-duration) ease;
-            z-index: 1000;
-        }
-
-        .menu-container:hover,
-        .menu-trigger:hover ~ .menu-container {
-            transform: translateX(var(--menu-width));
+            background: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), 
+            url('img/nencay.jpg') no-repeat center center fixed;
+            background-size: cover;
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 1rem;
+            transition: var(--transition);
         }
 
         .menu-trigger {
@@ -85,125 +64,396 @@
             left: 0;
             width: var(--menu-trigger-width);
             height: 100%;
-            background: rgba(0, 0, 0, 0.1);
+            background: transparent;
             cursor: pointer;
             z-index: 1100;
+            transition: var(--transition);
+        }
+
+        .menu-trigger:hover {
+            background: var(--glass-bg);
+        }
+
+        .menu-container {
+            position: fixed;
+            top: 0;
+            left: calc(-1 * var(--menu-width));
+            width: var(--menu-width);
+            height: 100%;
+            background: var(--card-bg);
+            backdrop-filter: blur(8px);
+            box-shadow: 4px 0 12px var(--shadow-color);
+            transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+            z-index: 1000;
+            padding: 2rem 1rem;
+        }
+
+        .menu-container:hover,
+        .menu-trigger:hover ~ .menu-container {
+            transform: translateX(var(--menu-width));
         }
 
         .menu {
-            padding: 2rem 1rem;
             display: flex;
             flex-direction: column;
-            gap: 1rem;
-        }
-
-        .menu-item {
-            padding: 1rem;
-            color: var(--menu-text);
-            font-size: clamp(1rem, 2vw, 1.2rem);
-            font-weight: 500;
-            border-radius: 0.6rem;
-            transition: background var(--transition-duration) ease;
-            cursor: pointer;
-            text-decoration: none;
-            display: flex;
-            align-items: center;
             gap: 0.5rem;
         }
 
+        .menu-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem 1.5rem;
+            color: var(--text-color);
+            font-size: 1.1rem;
+            font-weight: 500;
+            text-decoration: none;
+            border-radius: 8px;
+            transition: var(--transition);
+        }
+
         .menu-item:hover {
-            background: var(--menu-hover-bg);
+            background: var(--glass-bg);
+            color: var(--primary-color);
+            transform: translateX(8px);
         }
 
         .menu-item i {
-            font-size: 1.2rem;
+            font-size: 1.3rem;
+            color: var(--accent-color);
         }
 
-        /* Kiểu cho phần đề xuất cây trồng */
-        .recommendation-container {
-            margin-top: 2rem;
-            margin-left: calc(var(--menu-trigger-width) + 1rem);
-            max-width: 600px;
-            background: var(--box-bg);
-            padding: 2rem;
+        .button-container {
+            display: flex;
+            justify-content: center;
+            gap: 1.5rem;
+            margin: 2rem 0;
+            background: var(--card-bg);
+            padding: 1rem;
             border-radius: var(--border-radius);
-            box-shadow: 0 8px 25px var(--shadow-color);
+            box-shadow: 0 4px 10px var(--shadow-color);
         }
 
-        .recommendation-container h2 {
-            color: var(--text-dark);
-            font-size: clamp(1.5rem, 3vw, 2rem);
+        .fill-button, .predict-button {
+            padding: 0.8rem 2rem;
+            font-size: 1rem;
             font-weight: 600;
+            color: #fff;
+            background: var(--primary-color);
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: var(--transition);
+            box-shadow: 0 3px 8px var(--shadow-color);
+        }
+
+        .fill-button:hover, .predict-button:hover {
+            background: #218838;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 12px var(--shadow-color);
+        }
+
+        .data-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            max-width: 1200px;
+            width: 100%;
+            padding: 1.5rem;
+            background: var(--card-bg);
+            border-radius: var(--border-radius);
+            box-shadow: 0 4px 12px var(--shadow-color);
+        }
+
+        .data-box {
+            background: var(--glass-bg);
+            padding: 1.5rem;
+            border-radius: var(--border-radius);
+            text-align: center;
+            box-shadow: 0 4px 10px var(--shadow-color);
+            transition: var(--transition);
+        }
+
+        .data-box:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 6px 14px var(--shadow-color);
+        }
+
+        .data-box h1 {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--secondary-color);
             margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
-        .recommendation-container p {
-            color: var(--text-dark);
-            font-size: clamp(1rem, 2vw, 1.2rem);
-            margin-bottom: 0.5rem;
+        .data-box input {
+            width: 100%;
+            padding: 0.5rem;
+            font-size: 1.2rem;
+            font-weight: 500;
+            text-align: center;
+            border: 2px solid var(--accent-color);
+            border-radius: 6px;
+            background: var(--card-bg);
+            color: var(--text-color);
+            outline: none;
+            transition: var(--transition);
         }
 
-        .warning {
-            color: #e63946;
+        .data-box input:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.1);
+        }
+
+        .prediction-result {
+            margin: 2rem auto;
+            padding: 2rem;
+            background: var(--card-bg);
+            border-radius: var(--border-radius);
+            box-shadow: 0 4px 12px var(--shadow-color);
+            max-width: 600px;
+            width: 100%;
+            display: none;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        .prediction-result.show {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .prediction-result h2 {
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: var(--secondary-color);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .prediction-result p {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+
+        .prediction-result img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            box-shadow: 0 3px 8px var(--shadow-color);
+            transition: var(--transition);
+        }
+
+        .prediction-result img:hover {
+            transform: scale(1.03);
+        }
+
+        .prediction-result .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--glass-bg);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .prediction-result .comparison-table th {
+            background: var(--primary-color);
+            color: #fff;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+            padding: 1rem;
+        }
+
+        .prediction-result .comparison-table td {
+            padding: 1rem;
+            font-size: 0.95rem;
+            color: var(--text-color);
+            border-top: 1px solid var(--glass-bg);
+        }
+
+        .prediction-result .comparison-table tr:hover td {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .prediction-result .comparison-table .current-value {
+            color: var(--accent-color);
+            font-weight: 600;
+        }
+
+        .prediction-result .comparison-table .ideal-value {
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+
+        .prediction-result .comparison-table .suitability {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
             font-weight: 500;
         }
 
-        /* Tăng khả năng tiếp cận */
-        @media (prefers-reduced-motion: reduce) {
-            .menu-container {
-                transition: none;
-            }
+        .recommendation-table {
+            margin: 2rem auto;
+            width: 90%;
+            max-width: 700px;
+            background: var(--card-bg);
+            border-radius: var(--border-radius);
+            box-shadow: 0 4px 12px var(--shadow-color);
+            padding: 1.5rem;
+            display: none;
+            animation: fadeIn 0.5s ease-in-out;
         }
 
-        /* Thiết kế responsive */
-        @media (max-width: 1024px) {
+        .recommendation-table.show {
+            display: table;
+        }
+
+        .recommendation-table th {
+            background: var(--primary-color);
+            color: #fff;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+            padding: 1rem;
+        }
+
+        .recommendation-table td {
+            padding: 1rem;
+            font-size: 0.95rem;
+            color: var(--text-color);
+            background: var(--glass-bg);
+        }
+
+        .recommendation-table tr:hover td {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .recommendation-table td ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .recommendation-table td ul li {
+            position: relative;
+            padding-left: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .recommendation-table td ul li:before {
+            content: "•";
+            color: var(--primary-color);
+            position: absolute;
+            left: 0;
+            font-size: 1.2rem;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (max-width: 768px) {
+            .data-container {
+                grid-template-columns: 1fr;
+            }
+
+            .button-container {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .prediction-result, .recommendation-table {
+                width: 100%;
+                padding: 1rem;
+            }
+
             .menu-container {
-                width: 100%;
-                left: calc(-100%);
-            }
-
-            .menu-container:hover,
-            .menu-trigger:hover ~ .menu-container {
-                transform: translateX(100%);
-            }
-
-            .menu-trigger {
-                width: 15px;
-            }
-
-            .recommendation-container {
-                margin-left: 0;
-                width: 100%;
+                width: 220px;
             }
         }
     </style>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
 </head>
 <body>
-    <!-- Nút kích hoạt và Menu thanh bên -->
     <div class="menu-trigger"></div>
     <div class="menu-container">
         <div class="menu">
-            <a href="index.html" class="menu-item"><i class="fas fa-home"></i> Trang chủ</a>
-            <a href="dataanalist.html" class="menu-item"><i class="fas fa-chart-line"></i> Phân tích dữ liệu</a>
-            <a href="#" class="menu-item"><i class="fas fa-seedling"></i> Đề xuất giống</a>
-            <a href="#" class="menu-item"><i class="fas fa-gamepad"></i> Điều khiển</a>
-            <a href="#" class="menu-item"><i class="fas fa-comment"></i> Chat Box</a>
-            <a href="#" class="menu-item"><i class="fas fa-cog"></i> Cài đặt</a>
-            <a href="#" class="menu-item"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a>
+     <a href="home.html" class="menu-item"><i class="fas fa-home"></i> Trang chủ</a>
+<a href="dataanalist.html" class="menu-item"><i class="fas fa-chart-line"></i> Phân tích</a>
+<a href="giong.html" class="menu-item"><i class="fas fa-seedling"></i> Đề xuất cây</a>
+<a href="nuoi.html" class="menu-item"><i class="fas fa-seedling"></i> Đề xuất vật nuôi</a>
+<a href="chon-giong.html" class="menu-item"><i class="fas fa-leaf"></i> Chọn giống</a>
+<a href="sl.html" class="menu-item"><i class="fas fa-seedling"></i> Sản lượng</a>
+<a href="#" class="menu-item"><i class="fas fa-gamepad"></i> Điều khiển</a>
+<a href="#" class="menu-item"><i class="fas fa-comment"></i> Chat Box</a>
+<a href="#" class="menu-item"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a>
         </div>
     </div>
 
-    <!-- Phần hiển thị đề xuất cây trồng -->
-    <div class="recommendation-container">
-        <h2>Đề xuất giống cây trồng</h2>
-        <div id="recommendation-content"></div>
+    <div class="button-container">
+        <button class="fill-button" onclick="dienNhanhTuFirebase()">Điền nhanh</button>
+        <button class="predict-button" onclick="duDoanGiongCay()">Khuyến nghị cây</button>
     </div>
 
-    <!-- Firebase SDK -->
+    <div class="prediction-result" id="prediction-result">
+        <h2>Giống cây phù hợp</h2>
+        <p id="crop-result">Chưa có dự đoán</p>
+        <img id="crop-image" src="" alt="Hình ảnh cây trồng" style="display: none;">
+        <table class="comparison-table" id="comparison-table">
+            <thead>
+                <tr>
+                    <th>Yếu tố</th>
+                    <th>Giá trị hiện tại</th>
+                    <th>Giá trị lý tưởng</th>
+                    <th>Mức độ phù hợp</th>
+                </tr>
+            </thead>
+            <tbody id="comparison-body"></tbody>
+        </table>
+    </div>
+
+    <div class="recommendation-table" id="recommendation-table">
+        <table>
+            <thead>
+                <tr>
+                    <th>Hành động đề xuất</th>
+                    <th>Giống cây thay thế</th>
+                </tr>
+            </thead>
+            <tbody id="recommendation-body"></tbody>
+        </table>
+    </div>
+
+    <div class="data-container">
+        <div class="data-box">
+            <h1>Nhiệt độ</h1>
+            <div class="data"><input type="text" class="value" id="nhietDo" placeholder="Nhập giá trị" /></div>
+        </div>
+        <div class="data-box">
+            <h1>Độ ẩm</h1>
+            <div class="data"><input type="text" class="value" id="doAm" placeholder="Nhập giá trị" /></div>
+        </div>
+        <div class="data-box">
+            <h1>Độ ẩm đất</h1>
+            <div class="data"><input type="text" class="value" id="doAmDat" placeholder="Nhập giá trị" /></div>
+        </div>
+        <div class="data-box">
+            <h1>Nồng độ NH3+</h1>
+            <div class="data"><input type="text" class="value" id="nh3" placeholder="Nhập giá trị" /></div>
+        </div>
+        <div class="data-box">
+            <h1>Lượng mưa</h1>
+            <div class="data"><input type="text" class="value" id="luongMua" placeholder="Nhập giá trị" readonly /></div>
+        </div>
+    </div>
+
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.20.0/dist/tf.min.js"></script>
 
     <script>
         // Cấu hình Firebase
@@ -218,69 +468,379 @@
             measurementId: "G-7GNXDSY3F2"
         };
 
-        // Khởi tạo Firebase
         firebase.initializeApp(firebaseConfig);
+        const coSoDuLieu = firebase.database();
+        const thamChieuDuLieu = coSoDuLieu.ref('data');
+        const thamChieuHistory = coSoDuLieu.ref('data_history');
 
-        // Tham chiếu đến Firebase Realtime Database
-        const database = firebase.database();
-        const dataRef = database.ref('data');
+        // Dữ liệu huấn luyện
+        const duLieuHuanLuyen = {
+            dauVao: [
+                [25.0, 80.0, 60.0, 0.2], // Lúa
+                [30.0, 80.0, 70.0, 0.25],
+                [25.0, 70.0, 50.0, 0.15], // Ngô
+                [28.0, 65.0, 45.0, 0.2],
+                [20.0, 75.0, 55.0, 0.3], // Cà phê
+                [22.0, 80.0, 60.0, 0.35],
+                [26.0, 70.0, 50.0, 0.2], // Sắn
+                [28.0, 75.0, 55.0, 0.25],
+                [30.0, 60.0, 40.0, 0.15], // Điều
+                [32.0, 65.0, 45.0, 0.18],
+                [28.0, 80.0, 60.0, 0.25], // Cao su
+                [32.0, 85.0, 65.0, 0.28],
+                [22.0, 70.0, 50.0, 0.2], // Khoai lang
+                [26.0, 75.0, 55.0, 0.22],
+                [28.0, 60.0, 40.0, 0.15], // Đậu phộng
+                [32.0, 65.0, 45.0, 0.18],
+                [22.0, 80.0, 60.0, 0.3], // Chè
+                [24.0, 85.0, 65.0, 0.35],
+                [28.0, 75.0, 55.0, 0.25], // Tiêu
+                [30.0, 80.0, 60.0, 0.28],
+                [28.0, 70.0, 50.0, 0.2], // Xoài
+                [32.0, 75.0, 55.0, 0.25],
+                [28.0, 80.0, 60.0, 0.2], // Chuối
+                [30.0, 85.0, 70.0, 0.25],
+                [22.0, 70.0, 50.0, 0.15], // Cam
+                [26.0, 75.0, 55.0, 0.2],
+                [28.0, 70.0, 50.0, 0.15], // Thanh Long
+                [32.0, 75.0, 55.0, 0.18],
+                [28.0, 80.0, 60.0, 0.3], // Sầu Riêng
+                [32.0, 85.0, 70.0, 0.35]
+            ],
+            nhan: [
+                'Lúa', 'Lúa', 'Ngô', 'Ngô', 'Cà phê', 'Cà phê', 'Sắn', 'Sắn', 'Điều', 'Điều',
+                'Cao su', 'Cao su', 'Khoai lang', 'Khoai lang', 'Đậu phộng', 'Đậu phộng',
+                'Chè', 'Chè', 'Tiêu', 'Tiêu', 'Xoài', 'Xoài', 'Chuối', 'Chuối', 'Cam', 'Cam',
+                'Thanh Long', 'Thanh Long', 'Sầu Riêng', 'Sầu Riêng'
+            ]
+        };
 
-        // Hàm đề xuất giống cây trồng
-        function recommendCrop(data) {
-            const temperature = data.temperature || 0;
-            const humidity = data.humidity || 0;
-            const soilMoisture = data.soil_moisture || 0;
-            const nh3 = data.nh3 || 0;
-            const precipitation = data.precipitation || 0;
+        // Điều kiện lý tưởng
+    const dieuKienLyTuong = {
+    'Lúa': { nhietDo: [20, 35], doAm: [70, 90], doAmDat: [50, 80], nh3: [0.1, 0.3], luongMua: [150, 300] },
+    'Ngô': { nhietDo: [20, 30], doAm: [60, 80], doAmDat: [40, 60], nh3: [0.1, 0.25], luongMua: [100, 250] },
+    'Cà phê': { nhietDo: [18, 25], doAm: [70, 90], doAmDat: [50, 70], nh3: [0.2, 0.4], luongMua: [200, 400] },
+    'Sắn': { nhietDo: [25, 30], doAm: [60, 80], doAmDat: [40, 60], nh3: [0.1, 0.3], luongMua: [150, 300] },
+    'Điều': { nhietDo: [25, 35], doAm: [50, 70], doAmDat: [30, 50], nh3: [0.1, 0.2], luongMua: [100, 250] },
+    'Cao su': { nhietDo: [25, 35], doAm: [70, 90], doAmDat: [50, 70], nh3: [0.2, 0.3], luongMua: [200, 450] },
+    'Khoai lang': { nhietDo: [20, 30], doAm: [60, 80], doAmDat: [40, 60], nh3: [0.1, 0.25], luongMua: [100, 250] },
+    'Đậu phộng': { nhietDo: [25, 35], doAm: [50, 70], doAmDat: [30, 50], nh3: [0.1, 0.2], luongMua: [100, 200] },
+    'Chè': { nhietDo: [20, 30], doAm: [70, 90], doAmDat: [50, 70], nh3: [0.2, 0.4], luongMua: [200, 400] },
+    'Tiêu': { nhietDo: [25, 35], doAm: [70, 90], doAmDat: [50, 70], nh3: [0.2, 0.3], luongMua: [150, 300] },
+    'Xoài': { nhietDo: [25, 35], doAm: [60, 80], doAmDat: [40, 60], nh3: [0.1, 0.3], luongMua: [150, 300] },
+    'Chuối': { nhietDo: [25, 35], doAm: [70, 90], doAmDat: [50, 80], nh3: [0.1, 0.3], luongMua: [200, 400] },
+    'Cam': { nhietDo: [20, 30], doAm: [60, 80], doAmDat: [40, 60], nh3: [0.1, 0.25], luongMua: [100, 250] },
+    'Thanh Long': { nhietDo: [25, 35], doAm: [60, 80], doAmDat: [40, 60], nh3: [0.1, 0.2], luongMua: [100, 250] },
+    'Sầu Riêng': { nhietDo: [25, 35], doAm: [70, 90], doAmDat: [50, 80], nh3: [0.2, 0.4], luongMua: [200, 400] }
+};
 
-            let recommendation = '';
-            let warnings = '';
+        // URL hình ảnh cây trồng
+        const anhCayTrong = {
+            'Lúa': 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/9a/Rice_Plant_01.jpg/320px-Rice_Plant_01.jpg',
+            'Ngô': 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/05/Corncob.jpg/320px-Corncob.jpg',
+            'Cà phê': 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/96/Coffee_beans.jpg/320px-Coffee_beans.jpg',
+            'Sắn': 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3c/Cassava_root.jpg/320px-Cassava_root.jpg',
+            'Điều': 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/9c/Cashew_nut_with_fruit.jpg/320px-Cashew_nut_with_fruit.jpg',
+            'Cao su': 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5c/Rubber_tree_plantation.jpg/320px-Rubber_tree_plantation.jpg',
+            'Khoai lang': 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4e/Sweet_potato_vines.jpg/320px-Sweet_potato_vines.jpg',
+            'Đậu phộng': 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/Peanut_plant.jpg/320px-Peanut_plant.jpg',
+            'Chè': 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1f/Tea_plantation_in_Assam.jpg/320px-Tea_plantation_in_Assam.jpg',
+            'Tiêu': 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4a/Black_pepper_vine.jpg/320px-Black_pepper_vine.jpg',
+            'Xoài': 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8a/Mango_tree.jpg/320px-Mango_tree.jpg',
+            'Chuối': 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6f/Banana_tree.jpg/320px-Banana_tree.jpg',
+            'Cam': 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/15/Orange_tree.jpg/320px-Orange_tree.jpg',
+            'Thanh Long': 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6d/Dragon_fruit_plant.jpg/320px-Dragon_fruit_plant.jpg',
+            'Sầu Riêng': 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Durian_tree.jpg/320px-Durian_tree.jpg'
+        };
 
-            // Kiểm tra nhiệt độ (giả định 60°C là lỗi, điều chỉnh về 25-30°C nếu bất thường)
-            let adjustedTemperature = temperature;
-            if (temperature > 50) {
-                adjustedTemperature = 27; // Giả định nhiệt độ thực tế là 27°C
-                warnings += '<p class="warning">Cảnh báo: Nhiệt độ ' + temperature + '°C quá cao, có thể do lỗi cảm biến. Giả định nhiệt độ là 27°C để đề xuất.</p>';
-            }
+        let moHinh;
 
-            // Kiểm tra nồng độ NH3
-            if (nh3 > 5) {
-                warnings += '<p class="warning">Cảnh báo: Nồng độ NH3 (' + nh3 + ' ppm) quá cao, có thể gây hại cho cây. Cần giảm NH3 bằng cách tăng thông gió hoặc giảm phân bón amoniac.</p>';
-            }
-
-            // Đề xuất cây trồng dựa trên điều kiện
-            if (adjustedTemperature >= 20 && adjustedTemperature <= 35 && humidity >= 70 && soilMoisture >= 40) {
-                recommendation += '<p><strong>Cây lúa nước (Oryza sativa)</strong>: Phù hợp với độ ẩm cao (không khí: ' + humidity + '%, đất: ' + soilMoisture + '%). Nhiệt độ ' + adjustedTemperature + '°C là lý tưởng.</p>';
-                recommendation += '<p><strong>Cây khoai môn (Colocasia esculenta)</strong>: Thích hợp với độ ẩm cao và nhiệt độ hiện tại.</p>';
-                if (soilMoisture >= 50) {
-                    recommendation += '<p><strong>Cây súng (Nymphaea spp.)</strong>: Phù hợp nếu có đất ngập nước, với độ ẩm không khí và đất hiện tại.</p>';
-                }
-            } else {
-                recommendation += '<p>Điều kiện hiện tại không lý tưởng cho cây trồng phổ biến. Cần điều chỉnh nhiệt độ, độ ẩm hoặc cải thiện đất.</p>';
-            }
-
-            // Khuyến nghị tưới tiêu
-            if (precipitation === 0) {
-                recommendation += '<p><strong>Khuyến nghị</strong>: Không có mưa, cần tưới tiêu nhẹ để duy trì độ ẩm đất, nhưng tránh ngập úng do độ ẩm không khí đã cao.</p>';
-            }
-
-            // Hiển thị kết quả
-            document.getElementById('recommendation-content').innerHTML = warnings + recommendation;
+        // Hàm chuẩn hóa dữ liệu
+        function chuanHoa(duLieu, min, max) {
+            return duLieu.map(x => (x - min) / (max - min));
         }
 
-        // Lắng nghe cập nhật từ Firebase
-        dataRef.on('value', (snapshot) => {
-            const data = snapshot.val();
-            if (data) {
-                console.log('Dữ liệu Firebase:', data);
-                recommendCrop(data);
+        // Hàm thêm nhiễu
+        function themNhieu(duLieu, heSoNhieu) {
+            return duLieu.map(row => 
+                row.map(val => val + (Math.random() * 2 - 1) * heSoNhieu * val)
+            );
+        }
+
+        // Hàm tính độ phù hợp
+        function tinhDoPhuHopYeuTo(giaTri, min, max) {
+            const trungBinh = (min + max) / 2;
+            const chenLech = (max - min) / 2;
+            const doPhuHop = Math.max(0, 1 - Math.abs(giaTri - trungBinh) / chenLech) * 100;
+            return doPhuHop.toFixed(1);
+        }
+
+        // Hàm lấy icon mức độ phù hợp
+        function layIconMucDoPhuHop(giaTri, min, max, doPhuHop) {
+            const chenLech = (max - min) / 2;
+            const trungBinh = (min + max) / 2;
+            const doPhuHopPhanTram = parseFloat(doPhuHop);
+
+            if (doPhuHopPhanTram >= 80) {
+                return '<i class="fas fa-check-circle" style="color: #27ae60;"></i> Tốt';
+            } else if (doPhuHopPhanTram >= 50) {
+                if (giaTri < min) {
+                    return '<i class="fas fa-arrow-down" style="color: #f39c12;"></i> Thấp';
+                } else if (giaTri > max) {
+                    return '<i class="fas fa-arrow-up" style="color: #f39c12;"></i> Cao';
+                }
             } else {
-                console.warn('Không có dữ liệu từ Firebase tại /data');
-                document.getElementById('recommendation-content').innerHTML = '<p>Không có dữ liệu để đề xuất cây trồng.</p>';
+                if (giaTri < min - chenLech) {
+                    return '<i class="fas fa-exclamation-triangle" style="color: #e74c3c;"></i> Quá thấp';
+                } else if (giaTri > max + chenLech) {
+                    return '<i class="fas fa-exclamation-triangle" style="color: #e74c3c;"></i> Quá cao';
+                } else if (giaTri < min) {
+                    return '<i class="fas fa-arrow-down" style="color: #f39c12;"></i> Thấp';
+                } else if (giaTri > max) {
+                    return '<i class="fas fa-arrow-up" style="color: #f39c12;"></i> Cao';
+                }
             }
-        }, (error) => {
-            console.error('Lỗi khi lấy dữ liệu Firebase:', error.message);
-            document.getElementById('recommendation-content').innerHTML = '<p>Lỗi khi tải dữ liệu để đề xuất cây trồng.</p>';
+            return '<i class="fas fa-check-circle" style="color: #27ae60;"></i> Tốt';
+        }
+
+        // Hàm tính độ phù hợp của cây trồng
+        function tinhDoPhuHop(cay, nhietDo, doAm, doAmDat, nh3, luongMua) {
+            const dieuKien = dieuKienLyTuong[cay];
+            let diem = 0;
+
+            diem += Math.max(0, 1 - Math.abs(nhietDo - (dieuKien.nhietDo[0] + dieuKien.nhietDo[1]) / 2) / ((dieuKien.nhietDo[1] - dieuKien.nhietDo[0]) / 2));
+            diem += Math.max(0, 1 - Math.abs(doAm - (dieuKien.doAm[0] + dieuKien.doAm[1]) / 2) / ((dieuKien.doAm[1] - dieuKien.doAm[0]) / 2));
+            diem += Math.max(0, 1 - Math.abs(doAmDat - (dieuKien.doAmDat[0] + dieuKien.doAmDat[1]) / 2) / ((dieuKien.doAmDat[1] - dieuKien.doAmDat[0]) / 2));
+            diem += Math.max(0, 1 - Math.abs(nh3 - (dieuKien.nh3[0] + dieuKien.nh3[1]) / 2) / ((dieuKien.nh3[1] - dieuKien.nh3[0]) / 2));
+            diem += Math.max(0, 1 - Math.abs(luongMua - (dieuKien.luongMua[0] + dieuKien.luongMua[1]) / 2) / ((dieuKien.luongMua[1] - dieuKien.luongMua[0]) / 2));
+
+            return diem / 5;
+        }
+
+        // Hàm tạo khuyến nghị
+        function taoKhuyenNghi(giongCayDuDoan, nhietDo, doAm, doAmDat, nh3, luongMua) {
+            const khuyenNghi = [];
+            const tatCaCay = Object.keys(dieuKienLyTuong);
+            const dieuKien = dieuKienLyTuong[giongCayDuDoan];
+
+            let hanhDong = [];
+
+            if (nhietDo < dieuKien.nhietDo[0]) hanhDong.push("Sưởi ấm hoặc che chắn để tăng nhiệt độ.");
+            else if (nhietDo > dieuKien.nhietDo[1]) hanhDong.push("Làm mát hoặc che bóng để giảm nhiệt độ.");
+
+            if (doAm < dieuKien.doAm[0]) hanhDong.push("Phun sương để tăng độ ẩm không khí.");
+            else if (doAm > dieuKien.doAm[1]) hanhDong.push("Giảm phun sương hoặc tăng thông thoáng để giảm độ ẩm không khí.");
+
+            if (doAmDat < dieuKien.doAmDat[0]) hanhDong.push("Tưới nhiều hơn để tăng độ ẩm đất.");
+            else if (doAmDat > dieuKien.doAmDat[1]) hanhDong.push("Giảm tưới để tránh úng đất.");
+
+            if (nh3 < dieuKien.nh3[0]) hanhDong.push("Tăng phân bón chứa đạm (như phân urê) để bổ sung NH3+.");
+            else if (nh3 > dieuKien.nh3[1]) hanhDong.push("Giảm phân bón chứa đạm để tránh dư thừa NH3+.");
+
+            if (luongMua < dieuKien.luongMua[0]) hanhDong.push("Tăng cường tưới tiêu do lượng mưa thấp.");
+            else if (luongMua > dieuKien.luongMua[1]) hanhDong.push("Cải thiện thoát nước do lượng mưa cao.");
+
+            let hanhDongText = hanhDong.length > 0 ? `<ul><li>${hanhDong.join('</li><li>')}</li></ul>` : 'Điều kiện hiện tại phù hợp, tiếp tục duy trì.';
+
+            const doPhuHop = tatCaCay
+                .filter(cay => cay !== giongCayDuDoan)
+                .map(cay => ({
+                    cay,
+                    diem: tinhDoPhuHop(cay, nhietDo, doAm, doAmDat, nh3, luongMua)
+                }))
+                .sort((a, b) => b.diem - a.diem);
+
+            const cayThayThe = doPhuHop.slice(0, 3).map(item => item.cay);
+            let cayThayTheText = `<ul><li>${cayThayThe.join('</li><li>')}</li></ul>`;
+
+            khuyenNghi.push(`<tr><td>${hanhDongText}</td><td>${cayThayTheText}</td></tr>`);
+            return khuyenNghi.join('');
+        }
+
+        // Hàm huấn luyện mô hình
+        async function huanLuyenMoHinh() {
+            let dauVao = duLieuHuanLuyen.dauVao;
+            let nhan = duLieuHuanLuyen.nhan;
+
+            const dauVaoTangCuong = [
+                ...dauVao,
+                ...themNhieu(dauVao, 0.05),
+                ...themNhieu(dauVao, 0.03),
+                ...themNhieu(dauVao, 0.07),
+                ...themNhieu(dauVao, 0.04)
+            ];
+            const nhanTangCuong = [...nhan, ...nhan, ...nhan, ...nhan, ...nhan];
+
+            const giaTriMin = [10, 40, 20, 0];
+            const giaTriMax = [40, 100, 80, 1];
+            const dauVaoChuanHoa = dauVaoTangCuong.map(row =>
+                row.map((val, i) => chuanHoa([val], giaTriMin[i], giaTriMax[i])[0])
+            );
+
+            const tapNhan = [...new Set(nhanTangCuong)];
+            const chiSoNhan = nhanTangCuong.map(nhan => tapNhan.indexOf(nhan));
+            const nhanOneHot = tf.oneHot(chiSoNhan, tapNhan.length);
+
+            moHinh = tf.sequential();
+            moHinh.add(tf.layers.dense({ units: 512, activation: 'relu', inputShape: [4], kernelRegularizer: tf.regularizers.l2({ l2: 0.005 }) }));
+            moHinh.add(tf.layers.batchNormalization());
+            moHinh.add(tf.layers.dropout({ rate: 0.1 }));
+            moHinh.add(tf.layers.dense({ units: 256, activation: 'relu', kernelRegularizer: tf.regularizers.l2({ l2: 0.005 }) }));
+            moHinh.add(tf.layers.batchNormalization());
+            moHinh.add(tf.layers.dropout({ rate: 0.1 }));
+            moHinh.add(tf.layers.dense({ units: 128, activation: 'relu', kernelRegularizer: tf.regularizers.l2({ l2: 0.005 }) }));
+            moHinh.add(tf.layers.batchNormalization());
+            moHinh.add(tf.layers.dense({ units: 64, activation: 'relu', kernelRegularizer: tf.regularizers.l2({ l2: 0.005 }) }));
+            moHinh.add(tf.layers.batchNormalization());
+            moHinh.add(tf.layers.dense({ units: tapNhan.length, activation: 'softmax' }));
+
+            const boToiUuHoa = tf.train.adam(0.0005);
+            moHinh.compile({
+                optimizer: boToiUuHoa,
+                loss: 'categoricalCrossentropy',
+                metrics: ['accuracy']
+            });
+
+            const xs = tf.tensor2d(dauVaoChuanHoa);
+            const ys = nhanOneHot;
+
+            await moHinh.fit(xs, ys, {
+                epochs: 1000,
+                batchSize: 8,
+                callbacks: {
+                    onEpochEnd: (epoch, logs) => {
+                        console.log(`Lần ${epoch}: mất mát = ${logs.loss.toFixed(4)}, độ chính xác = ${logs.acc.toFixed(4)}`);
+                    },
+                    onTrainEnd: () => {
+                        console.log('Hoàn thành huấn luyện mô hình');
+                    },
+                    earlyStopping: tf.callbacks.earlyStopping({
+                        monitor: 'loss',
+                        patience: 50
+                    })
+                }
+            });
+
+            xs.dispose();
+            ys.dispose();
+        }
+
+        // Hàm điền dữ liệu từ Firebase
+        function dienNhanhTuFirebase() {
+            thamChieuDuLieu.once('value', (snapshot) => {
+                const duLieu = snapshot.val();
+                if (duLieu) {
+                    console.log('Dữ liệu Firebase nhận được:', duLieu);
+                    document.getElementById('nhietDo').value = duLieu.temperature !== undefined && duLieu.temperature !== null ? duLieu.temperature.toFixed(1) : 'N/A';
+                    document.getElementById('doAm').value = duLieu.humidity !== undefined && duLieu.humidity !== null ? duLieu.humidity.toFixed(1) : 'N/A';
+                    document.getElementById('doAmDat').value = duLieu.soil_moisture !== undefined && duLieu.soil_moisture !== null ? duLieu.soil_moisture.toFixed(1) : 'N/A';
+                    document.getElementById('nh3').value = duLieu.nh3 !== undefined && duLieu.nh3 !== null ? duLieu.nh3.toFixed(2) : 'N/A';
+                } else {
+                    console.warn('Không có dữ liệu tại /data trong Firebase');
+                    document.getElementById('nhietDo').value = 'N/A';
+                    document.getElementById('doAm').value = 'N/A';
+                    document.getElementById('doAmDat').value = 'N/A';
+                    document.getElementById('nh3').value = 'N/A';
+                }
+            }, (loi) => {
+                console.error('Lỗi khi lấy dữ liệu Firebase:', loi.message);
+                document.getElementById('nhietDo').value = 'Lỗi';
+                document.getElementById('doAm').value = 'Lỗi';
+                document.getElementById('doAmDat').value = 'Lỗi';
+                document.getElementById('nh3').value = 'Lỗi';
+            });
+
+            const ngayHienTai = new Date();
+            const motThangTruoc = new Date(ngayHienTai.getTime() - 30 * 24 * 60 * 60 * 1000);
+            let tongLuongMua = 0;
+
+            thamChieuHistory.once('value', (snapshot) => {
+                const duLieuHistory = snapshot.val();
+                if (duLieuHistory) {
+                    Object.values(duLieuHistory).forEach(record => {
+                        const timestamp = new Date(record.timestamp);
+                        if (timestamp >= motThangTruoc && timestamp <= ngayHienTai) {
+                            tongLuongMua += parseFloat(record.precipitation) || 0;
+                        }
+                    });
+                    document.getElementById('luongMua').value = tongLuongMua.toFixed(1) + ' mm';
+                } else {
+                    console.warn('Không có dữ liệu trong data_history');
+                    document.getElementById('luongMua').value = 'N/A';
+                }
+            }, (loi) => {
+                console.error('Lỗi khi lấy dữ liệu history:', loi.message);
+                document.getElementById('luongMua').value = 'Lỗi';
+            });
+        }
+
+        // Hàm dự đoán giống cây
+        async function duDoanGiongCay() {
+            if (!moHinh) {
+                await huanLuyenMoHinh();
+            }
+
+            const nhietDo = parseFloat(document.getElementById('nhietDo').value);
+            const doAm = parseFloat(document.getElementById('doAm').value);
+            const doAmDat = parseFloat(document.getElementById('doAmDat').value);
+            const nh3 = parseFloat(document.getElementById('nh3').value);
+            const luongMuaText = document.getElementById('luongMua').value;
+            const luongMua = parseFloat(luongMuaText.replace(' mm', ''));
+
+            const phanHienThiKetQua = document.getElementById('prediction-result');
+            const ketQuaGiongCay = document.getElementById('crop-result');
+            const anhGiongCay = document.getElementById('crop-image');
+            const comparisonTable = document.getElementById('comparison-table');
+            const comparisonBody = document.getElementById('comparison-body');
+            const bangKhuyenNghi = document.getElementById('recommendation-table');
+            const noiDungBang = document.getElementById('recommendation-body');
+
+            if (isNaN(nhietDo) || isNaN(doAm) || isNaN(doAmDat) || isNaN(nh3) || isNaN(luongMua)) {
+                ketQuaGiongCay.textContent = 'Vui lòng nhập đầy đủ và đúng định dạng số';
+                anhGiongCay.style.display = 'none';
+                comparisonTable.style.display = 'none';
+                bangKhuyenNghi.classList.remove('show');
+                phanHienThiKetQua.classList.add('show');
+                return;
+            }
+
+            const giaTriMin = [10, 40, 20, 0];
+            const giaTriMax = [40, 100, 80, 1];
+            const dauVao = [nhietDo, doAm, doAmDat, nh3];
+            const dauVaoChuanHoa = dauVao.map((val, i) => chuanHoa([val], giaTriMin[i], giaTriMax[i])[0]);
+
+            const tensorDauVao = tf.tensor2d([dauVaoChuanHoa]);
+            const duDoan = moHinh.predict(tensorDauVao);
+            const chiSoDuDoan = duDoan.argMax(-1).dataSync()[0];
+            const tapNhan = ['Lúa', 'Ngô', 'Cà phê', 'Sắn', 'Điều', 'Cao su', 'Khoai lang', 'Đậu phộng', 'Chè', 'Tiêu', 'Xoài', 'Chuối', 'Cam', 'Thanh Long', 'Sầu Riêng'];
+            const giongCayDuDoan = tapNhan[chiSoDuDoan] || tapNhan[0];
+
+            ketQuaGiongCay.textContent = giongCayDuDoan;
+            anhGiongCay.src = anhCayTrong[giongCayDuDoan] || '';
+            anhGiongCay.alt = `Hình ảnh ${giongCayDuDoan}`;
+            anhGiongCay.style.display = anhCayTrong[giongCayDuDoan] ? 'block' : 'none';
+
+            const dieuKien = dieuKienLyTuong[giongCayDuDoan];
+            comparisonBody.innerHTML = `
+                <tr><td>Nhiệt độ</td><td class="current-value">${nhietDo.toFixed(1)} °C</td><td class="ideal-value">${dieuKien.nhietDo[0]} - ${dieuKien.nhietDo[1]} °C</td><td class="suitability">${layIconMucDoPhuHop(nhietDo, dieuKien.nhietDo[0], dieuKien.nhietDo[1], tinhDoPhuHopYeuTo(nhietDo, dieuKien.nhietDo[0], dieuKien.nhietDo[1]))} (${tinhDoPhuHopYeuTo(nhietDo, dieuKien.nhietDo[0], dieuKien.nhietDo[1])}%)</td></tr>
+                <tr><td>Độ ẩm</td><td class="current-value">${doAm.toFixed(1)} %</td><td class="ideal-value">${dieuKien.doAm[0]} - ${dieuKien.doAm[1]} %</td><td class="suitability">${layIconMucDoPhuHop(doAm, dieuKien.doAm[0], dieuKien.doAm[1], tinhDoPhuHopYeuTo(doAm, dieuKien.doAm[0], dieuKien.doAm[1]))} (${tinhDoPhuHopYeuTo(doAm, dieuKien.doAm[0], dieuKien.doAm[1])}%)</td></tr>
+                <tr><td>Độ ẩm đất</td><td class="current-value">${doAmDat.toFixed(1)} %</td><td class="ideal-value">${dieuKien.doAmDat[0]} - ${dieuKien.doAmDat[1]} %</td><td class="suitability">${layIconMucDoPhuHop(doAmDat, dieuKien.doAmDat[0], dieuKien.doAmDat[1], tinhDoPhuHopYeuTo(doAmDat, dieuKien.doAmDat[0], dieuKien.doAmDat[1]))} (${tinhDoPhuHopYeuTo(doAmDat, dieuKien.doAmDat[0], dieuKien.doAmDat[1])}%)</td></tr>
+                <tr><td>Nồng độ NH3+</td><td class="current-value">${nh3.toFixed(2)} mg/L</td><td class="ideal-value">${dieuKien.nh3[0]} - ${dieuKien.nh3[1]} mg/L</td><td class="suitability">${layIconMucDoPhuHop(nh3, dieuKien.nh3[0], dieuKien.nh3[1], tinhDoPhuHopYeuTo(nh3, dieuKien.nh3[0], dieuKien.nh3[1]))} (${tinhDoPhuHopYeuTo(nh3, dieuKien.nh3[0], dieuKien.nh3[1])}%)</td></tr>
+                <tr><td>Tổng lượng mưa</td><td class="current-value">${luongMua.toFixed(1)} mm</td><td class="ideal-value">${dieuKien.luongMua[0]} - ${dieuKien.luongMua[1]} mm</td><td class="suitability">${layIconMucDoPhuHop(luongMua, dieuKien.luongMua[0], dieuKien.luongMua[1], tinhDoPhuHopYeuTo(luongMua, dieuKien.luongMua[0], dieuKien.luongMua[1]))} (${tinhDoPhuHopYeuTo(luongMua, dieuKien.luongMua[0], dieuKien.luongMua[1])}%)</td></tr>
+            `;
+            comparisonTable.style.display = 'table';
+
+            noiDungBang.innerHTML = taoKhuyenNghi(giongCayDuDoan, nhietDo, doAm, doAmDat, nh3, luongMua);
+            bangKhuyenNghi.classList.add('show');
+            phanHienThiKetQua.classList.add('show');
+
+            tensorDauVao.dispose();
+            duDoan.dispose();
+        }
+
+        // Khởi động huấn luyện mô hình
+        document.addEventListener('DOMContentLoaded', () => {
+            huanLuyenMoHinh();
         });
     </script>
 </body>
